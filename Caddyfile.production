@@ -1,0 +1,16 @@
+{
+	auto_https off
+}
+
+http://chat.ofrc-admin.com {
+	encode gzip zstd
+	reverse_proxy frontend:80
+}
+
+http://api-chat.ofrc-admin.com {
+	encode gzip zstd
+	request_body {
+		max_size 30MB
+	}
+	reverse_proxy api:4100
+}

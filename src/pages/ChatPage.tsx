@@ -1,0 +1,349 @@
+import { FormEvent, useEffect, useRef, useState } from 'react';
+import { api } from '../services/api';
+
+type Msg = {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  sources?: string[];
+};
+
+type RecentQuestion = {
+  id: string;
+  question: string;
+  answer?: string;
+  sources?: string[];
+  askedAt: number;
+};
+
+const SESSION_KEY = 'ofrc_chat_session';
+const RECENT_KEY = 'ofrc_chat_recent_questions';
+const RECENT_LIMIT = 10;
+
+/** Per-tab only — not shared across browsers, profiles, or other tabs. */
+const tabStore = typeof sessionStorage !== 'undefined' ? sessionStorage : null;
+
+function wasPageReload(): boolean {
+  try {
+    const nav = performance.getEntriesByType('navigation')[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    return nav?.type === 'reload';
+  } catch {
+    return false;
+  }
+}
+
+function loadRecent(): RecentQuestion[] {
+  try {
+    // Drop legacy shared history so Empty cache / hard reload and new tabs start clean.
+    localStorage.removeItem(RECENT_KEY);
+    if (wasPageReload()) {
+      tabStore?.removeItem(RECENT_KEY);
+      return [];
+    }
+    const raw = tabStore?.getItem(RECENT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as RecentQuestion[];
+    return Array.isArray(parsed) ? parsed.slice(0, RECENT_LIMIT) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecent(items: RecentQuestion[]) {
+  tabStore?.setItem(RECENT_KEY, JSON.stringify(items.slice(0, RECENT_LIMIT)));
+}
+
+function newId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+export function ChatPage() {
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [recentOpen, setRecentOpen] = useState(false);
+  const [recent, setRecent] = useState<RecentQuestion[]>(() => loadRecent());
+  const [sessionId, setSessionId] = useState<string | null>(() => {
+    localStorage.removeItem(SESSION_KEY); // legacy cross-tab session
+    return tabStore?.getItem(SESSION_KEY) ?? null;
+  });
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, busy]);
+
+  function upsertRecent(entry: RecentQuestion) {
+    setRecent((prev) => {
+      const without = prev.filter((r) => r.id !== entry.id);
+      const next = [entry, ...without].slice(0, RECENT_LIMIT);
+      saveRecent(next);
+      return next;
+    });
+  }
+
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    const text = input.trim();
+    if (!text || busy) return;
+
+    const questionId = newId();
+    const userMsg: Msg = { id: questionId, role: 'user', content: text };
+    setInput('');
+    setError('');
+    setActiveQuestionId(questionId);
+    setMessages((m) => [...m, userMsg]);
+    upsertRecent({ id: questionId, question: text, askedAt: Date.now() });
+    setBusy(true);
+    setRecentOpen(false);
+
+    try {
+      const res = await api.chat(text, sessionId);
+      setSessionId(res.sessionId);
+      tabStore?.setItem(SESSION_KEY, res.sessionId);
+      const sources = (res.sources || []).map((s) => s.document).filter(Boolean);
+      const assistantMsg: Msg = {
+        id: `${questionId}-a`,
+        role: 'assistant',
+        content: res.answer,
+        sources,
+      };
+      setMessages((m) => [...m, assistantMsg]);
+      upsertRecent({
+        id: questionId,
+        question: text,
+        answer: res.answer,
+        sources,
+        askedAt: Date.now(),
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Chat failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function newChat() {
+    tabStore?.removeItem(SESSION_KEY);
+    setSessionId(null);
+    setMessages([]);
+    setActiveQuestionId(null);
+    setError('');
+    setRecentOpen(false);
+  }
+
+  function openRecent(item: RecentQuestion) {
+    setActiveQuestionId(item.id);
+    setError('');
+    setRecentOpen(false);
+
+    const existing = messages.find((m) => m.id === item.id);
+    if (existing) {
+      requestAnimationFrame(() => {
+        messageRefs.current[item.id]?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+        });
+      });
+      return;
+    }
+
+    const restored: Msg[] = [
+      { id: item.id, role: 'user', content: item.question },
+    ];
+    if (item.answer) {
+      restored.push({
+        id: `${item.id}-a`,
+        role: 'assistant',
+        content: item.answer,
+        sources: item.sources,
+      });
+    }
+    setMessages(restored);
+  }
+
+  async function copyResponse(message: Msg) {
+    const parts = [message.content];
+    if (message.sources?.length && !/references:/i.test(message.content)) {
+      parts.push(`References: ${message.sources.join(', ')}`);
+    }
+    const text = parts.join('\n\n');
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(message.id);
+      window.setTimeout(() => {
+        setCopiedId((current) => (current === message.id ? null : current));
+      }, 2000);
+    } catch {
+      setError('Could not copy to clipboard');
+    }
+  }
+
+  return (
+    <main className="page chat-layout">
+      <section className="panel chat-main">
+        <div className="chat-header">
+          <div className="chat-intro">
+            <h1 className="chat-title">Ask OFRC</h1>
+            <p className="chat-lede">
+              Ask about bylaws, camping, cabins, reservations, or event sites. Answers come
+              only from club documents shared for this chat.
+            </p>
+          </div>
+          <div className="chat-toolbar">
+            <button
+              type="button"
+              className="btn secondary chat-recent-toggle"
+              onClick={() => setRecentOpen((open) => !open)}
+              aria-expanded={recentOpen}
+              aria-controls="chat-recent-panel"
+            >
+              Recent{recent.length > 0 ? ` (${recent.length})` : ''}
+            </button>
+            <button type="button" className="btn secondary" onClick={newChat}>
+              New chat
+            </button>
+          </div>
+        </div>
+
+        <div className="chat-contact" aria-label="Contact and emergency information">
+          <p className="chat-contact-line">
+            Direct questions or for support, contact{' '}
+            <a href="mailto:ofrcassistant@outlook.com">ofrcassistant@outlook.com</a>
+          </p>
+          <p className="chat-contact-line">
+            For after-hours emergencies (non life-threatening), contact{' '}
+            <a href="tel:7079090700">707-909-0700</a>
+          </p>
+          <p className="chat-contact-line chat-contact-911">
+            In the event of a life-threatening emergency, call <a href="tel:911">911</a>.
+          </p>
+        </div>
+
+        <div className="chat-thread">
+          {messages.length === 0 && !busy && (
+            <div className="chat-empty">
+              <p className="chat-empty-title">How can we help?</p>
+              <p className="muted">
+                Try something like “What are the cabin reservation rules?” or “How do I check in
+                when I arrive?”
+              </p>
+            </div>
+          )}
+          {messages.map((m) => (
+            <div
+              key={m.id}
+              ref={(el) => {
+                messageRefs.current[m.id] = el;
+              }}
+              className={
+                m.role === 'user'
+                  ? activeQuestionId === m.id
+                    ? 'chat-bubble chat-bubble-user is-active'
+                    : 'chat-bubble chat-bubble-user'
+                  : 'chat-bubble chat-bubble-assistant'
+              }
+            >
+              {m.content}
+              {m.role === 'assistant' &&
+                m.sources &&
+                m.sources.length > 0 &&
+                !/references:/i.test(m.content) && (
+                  <div className="chat-refs">
+                    <strong>References:</strong> {m.sources.join(', ')}
+                  </div>
+                )}
+              {m.role === 'assistant' && (
+                <div className="chat-bubble-actions">
+                  <button
+                    type="button"
+                    className="chat-copy-btn"
+                    onClick={() => copyResponse(m)}
+                    aria-label="Copy response"
+                  >
+                    {copiedId === m.id ? 'Copied' : 'Copy'}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+          {busy && <p className="muted chat-thinking">Thinking…</p>}
+          <div ref={bottomRef} />
+        </div>
+
+        {error && <p className="error chat-error">{error}</p>}
+
+        <form onSubmit={onSubmit} className="chat-form">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask a question…"
+            disabled={busy}
+            className="chat-input"
+            aria-label="Ask a question"
+          />
+          <button className="btn" type="submit" disabled={busy || !input.trim()}>
+            Send
+          </button>
+        </form>
+      </section>
+
+      {recentOpen && (
+        <button
+          type="button"
+          className="chat-recent-backdrop"
+          aria-label="Close recent questions"
+          onClick={() => setRecentOpen(false)}
+        />
+      )}
+
+      <aside
+        id="chat-recent-panel"
+        className={recentOpen ? 'panel chat-sidebar is-open' : 'panel chat-sidebar'}
+        aria-label="Recent questions"
+      >
+        <div className="chat-sidebar-head">
+          <h2 className="chat-sidebar-title">Recent questions</h2>
+          <button
+            type="button"
+            className="chat-sidebar-close"
+            onClick={() => setRecentOpen(false)}
+            aria-label="Close recent questions"
+          >
+            Close
+          </button>
+        </div>
+        {recent.length === 0 ? (
+          <p className="muted chat-sidebar-empty">
+            Your last ten questions in this browser tab will appear here.
+          </p>
+        ) : (
+          <ul className="chat-sidebar-list">
+            {recent.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className={
+                    activeQuestionId === item.id
+                      ? 'chat-sidebar-item is-active'
+                      : 'chat-sidebar-item'
+                  }
+                  onClick={() => openRecent(item)}
+                  title={item.question}
+                >
+                  {item.question}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </aside>
+    </main>
+  );
+}

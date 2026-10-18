@@ -1,0 +1,22 @@
+name: Deploy chatbot production
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '.github/**'
+      - 'docs/**'
+      - '**/*.md'
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, ofrc-vps]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy production on VPS
+        run: |
+          chmod +x .github/scripts/deploy-production-on-vps.sh
+          .github/scripts/deploy-production-on-vps.sh "$GITHUB_WORKSPACE"
+      - name: Notice
+        run: |
+          echo "::notice title=Production chatbot::Confirm https://chat.ofrc-admin.com and https://api-chat.ofrc-admin.com/api/health"
