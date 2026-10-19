@@ -88,23 +88,9 @@ chatRouter.post('/', chatLimiter, async (req, res, next) => {
     const sourceNames = [
       ...new Set(usedChunks.map((c) => c.original_filename).filter(Boolean)),
     ];
-    const looksLikeRefusal =
-      /do not have that information|don't have that information|no matching|not in the club documents/i.test(
-        rawAnswer
-      );
-    let answer = rawAnswer.trim();
+    const answer = rawAnswer.replace(/\n+\s*references\s*:\s*[\s\S]*$/i, '').trim();
     if (!answer) {
       throw new Error('OLLAMA_ERROR: empty chat response');
-    }
-    if (sourceNames.length > 0 && !looksLikeRefusal) {
-      const missingCitation = sourceNames.some(
-        (name) => !rawAnswer.toLowerCase().includes(name.toLowerCase())
-      );
-      if (missingCitation) {
-        const extra = `\n\nReferences: ${sourceNames.join(', ')}`;
-        answer = `${answer}${extra}`;
-        writeEvent('token', { text: extra });
-      }
     }
 
     await query(

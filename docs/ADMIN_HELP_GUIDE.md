@@ -63,7 +63,7 @@ Use **Search documents** above the list to find a file by name, category, status
 4. Optionally choose a **category for new imports**.
 5. Click **Import & train** and wait. Each item is fetched and trained one at a time.
 
-Shop, cart, checkout, and account pages are left out. Member-only pages behind a login are not read. A page that is only a form, calendar, or image may fail with “not enough readable text”; the other selected items still train.
+Shop, cart, checkout, and account pages are left out. Member-only pages behind a login are not read. Link names are saved with their web addresses. If the Links page was imported before that, use **Refresh** on it. A page that is only a form, calendar, or image may fail with “not enough readable text”; the other selected items still train.
 
 Importing something already in the library downloads it again and re-trains it. On that document, **Refresh** does the same thing. Uploaded PDFs still use **Re-train**, which does not download anything.
 
@@ -138,7 +138,7 @@ After training:
 
 1. Open **Public chat** (or **Ask** in the top nav).
 2. Ask a question that the new document should answer.
-3. Confirm the reply is sensible and lists **References** (document file names) when grounded in docs.
+3. Confirm the reply is sensible. A source may be named in the answer. There is no separate References line.
 4. Use **Copy** on a reply if you need to paste it elsewhere.
 
 ---

@@ -81,12 +81,29 @@ export function ChatPage() {
     localStorage.removeItem(SESSION_KEY); // legacy cross-tab session
     return tabStore?.getItem(SESSION_KEY) ?? null;
   });
+  const [lede, setLede] = useState(
+    'Answers come only from club documents shared for this chat.'
+  );
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, busy]);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .topicIntro()
+      .then((data) => {
+        const intro = data.intro?.trim();
+        if (!cancelled && intro) setLede(intro);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function upsertRecent(entry: RecentQuestion) {
     setRecent((prev) => {
@@ -222,11 +239,7 @@ export function ChatPage() {
   }
 
   async function copyResponse(message: Msg) {
-    const parts = [message.content];
-    if (message.sources?.length && !/references:/i.test(message.content)) {
-      parts.push(`References: ${message.sources.join(', ')}`);
-    }
-    const text = parts.join('\n\n');
+    const text = message.content;
     try {
       await navigator.clipboard.writeText(text);
       setCopiedId(message.id);
@@ -244,10 +257,7 @@ export function ChatPage() {
         <div className="chat-header">
           <div className="chat-intro">
             <h1 className="chat-title">Ask OFRC</h1>
-            <p className="chat-lede">
-              Ask about bylaws, camping, cabins, reservations, or event sites. Answers come
-              only from club documents shared for this chat.
-            </p>
+            <p className="chat-lede">{lede}</p>
           </div>
           <div className="chat-toolbar">
             <button
@@ -311,14 +321,6 @@ export function ChatPage() {
               }
             >
               {m.content}
-              {m.role === 'assistant' &&
-                m.sources &&
-                m.sources.length > 0 &&
-                !/references:/i.test(m.content) && (
-                  <div className="chat-refs">
-                    <strong>References:</strong> {m.sources.join(', ')}
-                  </div>
-                )}
               {m.role === 'assistant' && (
                 <div className="chat-bubble-actions">
                   {m.firstWordMs != null && (

@@ -1,8 +1,18 @@
 import { Router } from 'express';
 import { query } from '../db/pool';
 import { requireAdmin } from '../middleware/auth';
+import { loadTopicIntro } from '../services/topicIntro';
 
 export const topicsRouter = Router();
+
+topicsRouter.get('/intro', async (_req, res, next) => {
+  try {
+    const intro = await loadTopicIntro();
+    res.json({ intro });
+  } catch (err) {
+    next(err);
+  }
+});
 
 topicsRouter.get('/', requireAdmin, async (_req, res, next) => {
   try {

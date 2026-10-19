@@ -65,7 +65,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 ### 3.1 Persistent instructions (always visible under “Ask OFRC”)
 
-1. Ask me about OFRC bylaws, camping, cabins, reservations, or event sites. I only use information shared by the club to answer questions in this chat.
+1. A short introduction under “Ask OFRC,” at most two sentences. The first sentence summarizes the topics currently in the library (category names, plus up to one short example from each of a few categories — not every topic). The second sentence says answers come only from club documents shared for this chat. The text is rebuilt from the topics list on each visit, so it changes when topics are added or removed. If there are no topics yet, it says to ask about the club, then the same second sentence.
 2. Contact lines (each on its own line, with dividers):
    - See OFRCNews.com for documents referenced here. (OFRCNews.com links to https://ofrcnews.com)
    - Direct questions or any requests for support to ofrcassistant@outlook.com.
@@ -76,7 +76,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 - Answers grounded only in retrieved club document chunks (no live web search). Imported OFRCNews.com pages count as club documents after an admin trains them.
 - May ask clarifying questions when the query is ambiguous or retrieval is weak.
-- When answers use documents, include **reference file name(s)** in the response (and/or a References section).
+- When answers use documents, the reply may name the source in the answer itself. There is no separate References line.
 - Rate-limited public chat endpoint so the shared VPS stays responsive while the local model is answering.
 - **Copy** control on each assistant reply (copies answer + references when applicable).
 - Each assistant reply shows **First word** (time until the first token) and **Finished** (time until the reply is complete). Finished sits immediately left of Copy. These times are not copied with the answer.
@@ -108,6 +108,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 - Importing an address already in the library downloads it again and re-trains it. **Refresh** on a web item does the same.
 - Only `ofrcnews.com` can be imported. The server does not fetch arbitrary URLs.
 - A page with almost no readable text (a bare calendar, image, or form) is skipped with an error. Other selected items still train.
+- Link names on an imported page are stored with their web addresses, so chat can give the URL.
 
 ### 4.2 Topics
 
@@ -203,5 +204,7 @@ Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member port
 | 2026-10-19 | Release 1.1.14: admins can import public OFRCNews.com pages, posts, and PDFs into the knowledge base. Chat still answers only from trained material. |
 | 2026-10-19 | Documents page can search the library by name, category, status, or OFRCNews address. |
 | 2026-10-19 | Topics page can search by title, key fact, category, or source file. |
+| 2026-10-19 | Chat replies no longer add a separate References line. Source names stay in the answer when the model includes them. |
+| 2026-10-19 | Imported OFRCNews pages keep each link name together with its web address. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*

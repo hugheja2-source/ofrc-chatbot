@@ -85,9 +85,25 @@ function isSkippedPath(url: string): boolean {
   return SKIP_PATHS.some((skip) => withSlash === skip);
 }
 
+function linkTarget(attrs: string): string | null {
+  const match = attrs.match(/\shref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+  const raw = decodeHtml((match?.[1] || match?.[2] || match?.[3] || '').replace(/\s+/g, '')).trim();
+  if (!raw || raw.startsWith('#') || /^javascript:/i.test(raw)) return null;
+  let url: URL;
+  try {
+    url = new URL(raw, `${SITE_ORIGIN}/`);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:' && url.protocol !== 'mailto:') return null;
+  if (url.hash.startsWith('#:~:')) url.hash = '';
+  return url.toString().replace(/%20$/i, '');
+}
+
 export function htmlToText(html: string): string {
   const parts: string[] = [];
   const stack: { tag: string; skipping: boolean }[] = [];
+  const anchors: Array<string | null> = [];
   const re = /<!--[\s\S]*?-->|<\/([a-zA-Z0-9:-]+)\s*>|<([a-zA-Z0-9:-]+)([^>]*)>|[^<]+/g;
   let match: RegExpExecArray | null;
 
@@ -102,6 +118,10 @@ export function htmlToText(html: string): string {
       for (let i = stack.length - 1; i >= 0; i--) {
         const frame = stack.pop();
         if (frame?.tag === tag) break;
+      }
+      if (tag === 'a') {
+        const href = anchors.pop();
+        if (href && !skipping()) parts.push(`(${href})`);
       }
       if (!skipping() && BLOCK_BREAKS.has(tag)) parts.push('\n');
       continue;
@@ -119,8 +139,12 @@ export function htmlToText(html: string): string {
         ) ||
         (tag === 'div' && /contact-form|grunion|jetpack-contact-form|wp-block-jetpack/i.test(attrs));
 
+      if (tag === 'a') anchors.push(skipping() ? null : linkTarget(attrs));
       if (!selfClosing) {
         stack.push({ tag, skipping: noisy || skipping() });
+      } else if (tag === 'a') {
+        const href = anchors.pop();
+        if (href && !skipping()) parts.push(`(${href})`);
       }
       if (!skipping() && tag === 'li') parts.push('\n- ');
       else if (!skipping() && (tag === 'br' || BLOCK_BREAKS.has(tag))) parts.push('\n');

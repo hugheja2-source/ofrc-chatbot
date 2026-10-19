@@ -21,6 +21,8 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
+  topicIntro: () => request<{ intro: string }>('/topics/intro'),
+
   health: () =>
     request<{
       ok: boolean;

@@ -76,7 +76,8 @@ export function AdminHelpPage() {
         </ol>
         <p>
           Shop, cart, checkout, and account pages are left out. Member-only pages behind a login
-          are not read. A page that is only a form, calendar, or image may fail because it does not
+          are not read. Link names are saved with their web addresses. If the Links page was
+          imported before that, use <strong>Refresh</strong> on it. A page that is only a form, calendar, or image may fail because it does not
           have enough readable text; the other selected items still train.
         </p>
         <p>
@@ -136,7 +137,10 @@ export function AdminHelpPage() {
         <ol>
           <li>Open <strong>Public chat</strong> (or <strong>Ask</strong>).</li>
           <li>Ask something the new document should cover.</li>
-          <li>Confirm the reply makes sense and shows <strong>References</strong> when grounded in docs.</li>
+          <li>
+            Confirm the reply makes sense. A source may be named in the answer. There is no separate
+            References line.
+          </li>
           <li>Use <strong>Copy</strong> on a reply if you need to paste it elsewhere.</li>
         </ol>
       </section>
