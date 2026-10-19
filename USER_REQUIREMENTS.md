@@ -99,6 +99,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 - Upload PDF only.
 - Optional category assignment on upload; ability to create categories.
 - Change category on an **existing** document (updates document and related topics).
+- Search the document list by name, category, status, error text, or OFRCNews address.
 - **Upload & train** runs ingest: extract text → chunk → embed → store vectors; then attempt topic/key-fact extraction.
 - Document statuses: `pending`, `processing`, `ready`, `failed`.
 - **Re-train** re-runs ingest for an existing document.
@@ -111,6 +112,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 ### 4.2 Topics
 
 - Categorized list of topics and key facts after successful training.
+- Search topics by title, summary, key fact, category, or source file. A category or topic match shows that topic’s facts. A fact-only match shows the topic with the matching facts.
 - Ability to delete a topic or individual key fact.
 - Topic extraction failure must not block document from becoming `ready` if chunks were stored (chat can still use the document).
 
@@ -199,5 +201,7 @@ Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member port
 | 2026-10-19 | Release 1.1.13: chat model switched to Gemma 3 1B (`gemma3:1b`) so CPU answers start sooner. Embeddings stay `nomic-embed-text`. |
 | 2026-10-19 | Ask page shows time to first word and time until the reply finishes, to the left of Copy. |
 | 2026-10-19 | Release 1.1.14: admins can import public OFRCNews.com pages, posts, and PDFs into the knowledge base. Chat still answers only from trained material. |
+| 2026-10-19 | Documents page can search the library by name, category, status, or OFRCNews address. |
+| 2026-10-19 | Topics page can search by title, key fact, category, or source file. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*

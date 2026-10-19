@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
 
 type Category = { id: number; name: string };
@@ -41,6 +41,7 @@ export function AdminDocumentsPage() {
   const [news, setNews] = useState<NewsItem[] | null>(null);
   const [selected, setSelected] = useState<string[]>([]);
   const [newsCategoryId, setNewsCategoryId] = useState('');
+  const [docQuery, setDocQuery] = useState('');
 
   async function refresh() {
     const [d, c] = await Promise.all([api.documents(), api.categories()]);
@@ -202,6 +203,26 @@ export function AdminDocumentsPage() {
       setBusy(false);
     }
   }
+
+  const visibleDocs = useMemo(() => {
+    const query = docQuery.trim().toLowerCase();
+    if (!query) return docs;
+    return docs.filter((doc) => {
+      const kind =
+        doc.source_kind === 'webpage' ? 'ofrcnews page' : doc.source_kind === 'web_pdf' ? 'ofrcnews pdf' : 'upload';
+      return [
+        doc.original_filename,
+        doc.status,
+        doc.category_name || 'uncategorized',
+        doc.source_url || '',
+        doc.error_message || '',
+        kind,
+      ]
+        .join('\n')
+        .toLowerCase()
+        .includes(query);
+    });
+  }, [docs, docQuery]);
 
   return (
     <div style={{ display: 'grid', gap: '1.25rem' }}>
@@ -367,9 +388,26 @@ export function AdminDocumentsPage() {
 
       <section className="panel" style={{ padding: '1.25rem' }}>
         <h2 style={{ marginTop: 0 }}>Documents</h2>
+        <label className="field" style={{ maxWidth: 520, marginBottom: '1rem' }}>
+          Search documents
+          <input
+            type="search"
+            value={docQuery}
+            onChange={(e) => setDocQuery(e.target.value)}
+            placeholder="Name, category, status, or OFRCNews address"
+          />
+        </label>
+        {docQuery.trim() && docs.length > 0 && (
+          <p className="muted" style={{ marginTop: 0 }}>
+            {visibleDocs.length} of {docs.length}
+          </p>
+        )}
         <div style={{ display: 'grid', gap: '0.75rem' }}>
           {docs.length === 0 && <p className="muted">No documents yet.</p>}
-          {docs.map((d) => (
+          {docs.length > 0 && visibleDocs.length === 0 && (
+            <p className="muted">No documents match that search.</p>
+          )}
+          {visibleDocs.map((d) => (
             <div
               key={d.id}
               style={{

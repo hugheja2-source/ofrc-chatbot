@@ -59,7 +59,9 @@ export function AdminHelpPage() {
         <h4>Change category</h4>
         <p>
           On any existing document in the list, use the <strong>Category</strong> dropdown to move
-          it to another category (or Uncategorized). Related topics update to match.
+          it to another category (or Uncategorized). Related topics update to match. Use{' '}
+          <strong>Search documents</strong> to find a file by name, category, status, or OFRCNews
+          address.
         </p>
         <h4>Import from OFRCNews.com</h4>
         <ol>
@@ -105,7 +107,10 @@ export function AdminHelpPage() {
         <h3>4. Topics — review the knowledge map</h3>
         <ol>
           <li>Open <strong>Topics</strong>.</li>
-          <li>Browse by category.</li>
+          <li>
+            Browse by category, or use <strong>Search topics</strong> to find a title, fact,
+            category, or source file.
+          </li>
           <li>Review key facts under each topic.</li>
           <li>Remove outdated topics or facts if needed.</li>
         </ol>

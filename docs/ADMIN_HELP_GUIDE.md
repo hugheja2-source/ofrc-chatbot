@@ -53,6 +53,8 @@ If topic extraction fails but chunks succeed, the document can still be **ready*
 
 On an existing document in the list, use the **Category** dropdown to assign a different category (or Uncategorized). Related topics for that document are updated to match.
 
+Use **Search documents** above the list to find a file by name, category, status, error text, or OFRCNews address.
+
 ### 3.3 Import from OFRCNews.com
 
 1. Go to **Documents**.
@@ -103,7 +105,7 @@ Use **Re-train** (or **Refresh** for an OFRCNews item) when:
 ## 4. Topics — review the knowledge map
 
 1. Open **Topics**.
-2. Browse by **category**.
+2. Browse by **category**, or use **Search topics** to find a title, fact, category, or source file.
 3. Expand topics to see **key facts**.
 4. Remove outdated topics or facts with **Delete topic** / **remove** on a fact.
 

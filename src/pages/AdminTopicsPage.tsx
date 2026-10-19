@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '../services/api';
 
 type TopicBlock = {
@@ -16,6 +16,7 @@ export function AdminTopicsPage() {
   const [uncategorized, setUncategorized] = useState<TopicBlock[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [topicQuery, setTopicQuery] = useState('');
 
   async function refresh() {
     const data = await api.topics();
@@ -51,6 +52,35 @@ export function AdminTopicsPage() {
       setBusy(false);
     }
   }
+
+  const filtered = useMemo(() => {
+    const query = topicQuery.trim().toLowerCase();
+    const narrow = (topics: TopicBlock[], categoryName: string) => {
+      if (!query) return topics;
+      const categoryHit = categoryName.toLowerCase().includes(query);
+      return topics.flatMap((topic) => {
+        const topicHit = [topic.title, topic.summary || '', topic.documentFilename || '']
+          .join('\n')
+          .toLowerCase()
+          .includes(query);
+        if (categoryHit || topicHit) return [topic];
+        const facts = topic.facts.filter((fact) => fact.factText.toLowerCase().includes(query));
+        return facts.length ? [{ ...topic, facts }] : [];
+      });
+    };
+
+    return {
+      categories: categories
+        .map((category) => ({ ...category, topics: narrow(category.topics, category.name) }))
+        .filter((category) => !query || category.topics.length > 0),
+      uncategorized: narrow(uncategorized, 'uncategorized'),
+    };
+  }, [categories, uncategorized, topicQuery]);
+
+  const totalTopics = categories.reduce((count, category) => count + category.topics.length, 0) + uncategorized.length;
+  const visibleTopics =
+    filtered.categories.reduce((count, category) => count + category.topics.length, 0) +
+    filtered.uncategorized.length;
 
   function renderTopics(topics: TopicBlock[]) {
     if (!topics.length) return <p className="muted">No topics yet for this category.</p>;
@@ -98,16 +128,37 @@ export function AdminTopicsPage() {
   return (
     <div style={{ display: 'grid', gap: '1.25rem' }}>
       {error && <p className="error">{error}</p>}
-      {categories.map((c) => (
+      <section className="panel" style={{ padding: '1.25rem' }}>
+        <label className="field" style={{ maxWidth: 520 }}>
+          Search topics
+          <input
+            type="search"
+            value={topicQuery}
+            onChange={(e) => setTopicQuery(e.target.value)}
+            placeholder="Topic, fact, category, or source file"
+          />
+        </label>
+        {topicQuery.trim() && totalTopics > 0 && (
+          <p className="muted" style={{ marginBottom: 0 }}>
+            {visibleTopics} of {totalTopics}
+          </p>
+        )}
+      </section>
+      {filtered.categories.map((c) => (
         <section key={c.id} className="panel" style={{ padding: '1.25rem' }}>
           <h2 style={{ marginTop: 0 }}>{c.name}</h2>
           {renderTopics(c.topics)}
         </section>
       ))}
-      {uncategorized.length > 0 && (
+      {filtered.uncategorized.length > 0 && (
         <section className="panel" style={{ padding: '1.25rem' }}>
           <h2 style={{ marginTop: 0 }}>Uncategorized</h2>
-          {renderTopics(uncategorized)}
+          {renderTopics(filtered.uncategorized)}
+        </section>
+      )}
+      {topicQuery.trim() && totalTopics > 0 && visibleTopics === 0 && (
+        <section className="panel" style={{ padding: '1.25rem' }}>
+          <p className="muted">No topics match that search.</p>
         </section>
       )}
       {!categories.length && !uncategorized.length && (
