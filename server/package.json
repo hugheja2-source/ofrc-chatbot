@@ -1,6 +1,6 @@
 {
   "name": "ofrc-chatbot-server",
-  "version": "1.1.13",
+  "version": "1.1.14",
   "private": true,
   "description": "OFRC Chatbot API",
   "main": "dist/index.js",

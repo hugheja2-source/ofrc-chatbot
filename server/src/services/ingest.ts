@@ -3,6 +3,7 @@ import path from 'path';
 import { query } from '../db/pool';
 import { chunkText } from './chunking';
 import { embedText, extractTopicsAndFacts } from './ollama';
+import { saveOfrcNewsSource } from './scrape';
 
 // Avoid pdf-parse package root side effects; use the library entry directly.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -26,8 +27,11 @@ export async function ingestDocument(documentId: number): Promise<void> {
     storage_path: string;
     category_id: number | null;
     category_name: string | null;
+    source_url: string | null;
+    source_kind: string;
   }>(
-    `SELECT d.id, d.storage_path, d.category_id, c.name AS category_name
+    `SELECT d.id, d.storage_path, d.category_id, c.name AS category_name,
+            d.source_url, d.source_kind
      FROM documents d
      LEFT JOIN categories c ON c.id = d.category_id
      WHERE d.id = $1`,
@@ -47,9 +51,32 @@ export async function ingestDocument(documentId: number): Promise<void> {
       ? doc.storage_path
       : path.resolve(doc.storage_path);
 
-    const { text, pages } = await extractPdfText(absolutePath);
+    let text = '';
+    let pages = 0;
+    const fromWeb = doc.source_kind === 'webpage' || doc.source_kind === 'web_pdf';
+    if (fromWeb) {
+      if (!doc.source_url) throw new Error('Imported page is missing its OFRCNews.com address');
+      const saved = await saveOfrcNewsSource(doc.source_url, absolutePath);
+      await query(`UPDATE documents SET original_filename = $2, updated_at = NOW() WHERE id = $1`, [
+        documentId,
+        saved.filename,
+      ]);
+      if (saved.kind === 'webpage') {
+        text = await fs.readFile(absolutePath, 'utf8');
+        pages = 1;
+      } else {
+        const parsed = await extractPdfText(absolutePath);
+        text = parsed.text;
+        pages = parsed.pages;
+      }
+    } else {
+      const parsed = await extractPdfText(absolutePath);
+      text = parsed.text;
+      pages = parsed.pages;
+    }
+
     if (!text.trim()) {
-      throw new Error('No extractable text found in PDF');
+      throw new Error(fromWeb ? 'No readable text found on that page' : 'No extractable text found in PDF');
     }
 
     await query(`DELETE FROM topics WHERE document_id = $1`, [documentId]);

@@ -75,8 +75,8 @@ If the context is insufficient, say you do not have that information in the club
 If the question is ambiguous, ask ONE short clarifying question instead of guessing.
 Be concise, friendly, and practical.
 Never invent rules, fees, dates, or policies not present in the context.
-When your answer is based on document excerpts, name the source file exactly as it appears in the context.
-Do not invent or shorten filenames.`;
+When your answer is based on document excerpts, name the source exactly as it appears in the context.
+Do not invent or shorten source names. A source may be an uploaded PDF or an imported OFRCNews.com page.`;
 
 function buildChatMessages(params: {
   question: string;
@@ -88,7 +88,7 @@ function buildChatMessages(params: {
       ? params.contextChunks
           .map(
             (c, i) =>
-              `[${i + 1}] Source file: ${c.documentFilename}\n${c.content}`
+              `[${i + 1}] Source: ${c.documentFilename}\n${c.content}`
           )
           .join('\n\n')
       : '(No matching club document excerpts were found.)';
@@ -99,7 +99,7 @@ ${contextBlock}
 Current user question:
 ${params.question}
 
-Respond with plain text for the user. If you used any source files above, mention those filenames in your answer.`;
+Respond with plain text for the user. If you used any sources above, mention those source names in your answer.`;
 
   return [
     { role: 'system', content: SYSTEM_INSTRUCTION },

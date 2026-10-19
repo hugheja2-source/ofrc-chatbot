@@ -86,8 +86,36 @@ export const api = {
         category_id: number | null;
         category_name: string | null;
         ingested_at: string | null;
+        source_url: string | null;
+        source_kind: string;
       }[];
     }>('/documents'),
+
+  ofrcNews: (refresh = false) =>
+    request<{
+      items: {
+        kind: 'page' | 'post' | 'pdf';
+        title: string;
+        url: string;
+        modified: string | null;
+        documentId: number | null;
+        status: string | null;
+      }[];
+    }>(`/documents/ofrcnews${refresh ? '?refresh=1' : ''}`),
+
+  importOfrcNews: (url: string, categoryId?: number) =>
+    request<{
+      document: {
+        id: number;
+        status: string;
+        error_message: string | null;
+        original_filename: string;
+        source_url: string | null;
+      };
+    }>('/documents/ofrcnews/import', {
+      method: 'POST',
+      body: JSON.stringify({ url, categoryId }),
+    }),
 
   uploadDocument: async (file: File, categoryId?: number) => {
     const form = new FormData();

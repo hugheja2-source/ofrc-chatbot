@@ -29,7 +29,7 @@ export const config = {
   uploadDir: process.env.UPLOAD_DIR || path.resolve(process.cwd(), 'uploads'),
   uploadMaxBytes: Number(process.env.UPLOAD_MAX_BYTES || 25 * 1024 * 1024),
   // Keep in sync with src/release.ts when cutting a release.
-  appRelease: '1.1.13',
+  appRelease: '1.1.14',
   chatModelName: 'Gemma 3 1B',
   ollamaBaseUrl: (process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434').replace(/\/$/, ''),
   ollamaChatModel: process.env.OLLAMA_CHAT_MODEL || 'gemma3:1b',

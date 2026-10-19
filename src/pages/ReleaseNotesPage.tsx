@@ -42,8 +42,22 @@ export function ReleaseNotesPage() {
         </section>
 
         <section>
+          <h2>OFRCNews.com</h2>
+          <p>
+            Admins can import public pages, posts, and PDFs from OFRCNews.com on the Documents
+            page. Imported pages are trained like other club documents. The chat does not browse
+            the web while answering. Pages that require a member login are not imported, and shop,
+            cart, and checkout pages are skipped.
+          </p>
+        </section>
+
+        <section>
           <h2>What changed</h2>
           <ul>
+            <li>
+              Documents can be loaded from public OFRCNews.com pages, posts, and PDFs, then trained
+              for chat.
+            </li>
             <li>Public chat and document training call Ollama on the VPS.</li>
             <li>
               Chat uses Gemma 3 1B. Gemma 3 4B stayed loaded, but the first word still waited
@@ -72,9 +86,10 @@ export function ReleaseNotesPage() {
         <section>
           <h2>Admin action</h2>
           <p>
-            No new training is required for this release. Search still uses{' '}
-            <code>{EMBED_MODEL_NAME}</code>. Documents only need a re-train when the embedding
-            model changes. Manage them under <Link to="/admin/documents">Admin → Documents</Link>.
+            To use OFRCNews.com in answers, open{' '}
+            <Link to="/admin/documents">Admin → Documents</Link>, load the site, and import the
+            pages you want. Existing PDFs do not need another training pass. Search still uses{' '}
+            <code>{EMBED_MODEL_NAME}</code>.
           </p>
         </section>
       </article>

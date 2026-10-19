@@ -1,8 +1,8 @@
 # OFRC Chatbot
 
-Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask questions; admins upload PDFs and train a RAG knowledge base. Answers stay grounded in uploaded documents. Chat and embeddings run on a free Ollama model on the club VPS (no web search).
+Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask questions; admins upload PDFs or import public OFRCNews.com pages and train a RAG knowledge base. Answers stay grounded in that trained material. Chat does not search the web while answering. Chat and embeddings run on a free Ollama model on the club VPS.
 
-**Release 1.1.13** — powered by Gemma 3 1B (`gemma3:1b`). Embeddings: `nomic-embed-text`. Chat tokens stream. The header release number is plain text. Release notes are admin-only.
+**Release 1.1.14** — powered by Gemma 3 1B (`gemma3:1b`). Embeddings: `nomic-embed-text`. Chat tokens stream. Admins can import public pages, posts, and PDFs from [OFRCNews.com](https://ofrcnews.com) into the knowledge base. The header release number is plain text. Release notes are admin-only.
 
 ## Stack
 

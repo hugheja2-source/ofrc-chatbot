@@ -8,7 +8,7 @@ Living requirements for the Odd Fellows Recreation Club chatbot. Update this doc
 
 ## 1. System overview
 
-A greenfield web application that answers questions about OFRC using **only** club-provided documents (RAG). It does **not** search the public internet for answers.
+A greenfield web application that answers questions about OFRC using **only** club-provided material (RAG). That material is uploaded PDFs and public pages, posts, and PDFs imported from [OFRCNews.com](https://ofrcnews.com). It does **not** search the public internet while answering.
 
 | Audience | Access |
 |----------|--------|
@@ -25,7 +25,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 **Stack:** React + TypeScript + Vite (frontend); Express + TypeScript (API); PostgreSQL + `pgvector` (host DB); Ollama on the VPS (chat + embeddings); Docker Compose + Nginx aligned with Member Portal.
 
-**Current release:** 1.1.13. The header shows `Release 1.1.13` and `powered by Gemma 3 1B` as plain text for everyone. The Ollama tag is not shown. That line is not a link. Release notes are admin-only (`/admin/release-notes`).
+**Current release:** 1.1.14. The header shows `Release 1.1.14` and `powered by Gemma 3 1B` as plain text for everyone. The Ollama tag is not shown. That line is not a link. Release notes are admin-only (`/admin/release-notes`).
 
 ---
 
@@ -44,7 +44,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 ### 2.2 Admin
 
 - Login with username and password (bcrypt + DB-backed Bearer sessions).
-- Manage documents (upload PDF, assign category, train/re-train, delete).
+- Manage documents (upload PDF, import public OFRCNews.com pages, assign category, train/re-train, delete).
 - Create categories.
 - Browse categorized topics and key facts extracted after training.
 - Change own password.
@@ -74,7 +74,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 ### 3.2 Chat behavior
 
-- Answers grounded only in retrieved club document chunks (no web search).
+- Answers grounded only in retrieved club document chunks (no live web search). Imported OFRCNews.com pages count as club documents after an admin trains them.
 - May ask clarifying questions when the query is ambiguous or retrieval is weak.
 - When answers use documents, include **reference file name(s)** in the response (and/or a References section).
 - Rate-limited public chat endpoint so the shared VPS stays responsive while the local model is answering.
@@ -103,6 +103,10 @@ A greenfield web application that answers questions about OFRC using **only** cl
 - Document statuses: `pending`, `processing`, `ready`, `failed`.
 - **Re-train** re-runs ingest for an existing document.
 - **Delete** removes document, chunks, and related topics/facts.
+- **Import from OFRCNews.com** lists public pages, posts, and PDFs on https://ofrcnews.com. The admin chooses which ones to fetch and train. Shop, cart, checkout, account, and thank-you pages are skipped. Pages that require a member login are not fetched.
+- Importing an address already in the library downloads it again and re-trains it. **Refresh** on a web item does the same.
+- Only `ofrcnews.com` can be imported. The server does not fetch arbitrary URLs.
+- A page with almost no readable text (a bare calendar, image, or form) is skipped with an error. Other selected items still train.
 
 ### 4.2 Topics
 
@@ -164,7 +168,7 @@ Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member port
 ## 7. Out of scope (v1)
 
 - Member Portal SSO / shared members table
-- Internet search for answers
+- Live internet search while answering a question
 - Native mobile apps
 - Models larger than Gemma 3 1B for chat on this VPS
 
@@ -194,5 +198,6 @@ Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member port
 | 2026-10-19 | Release 1.1.12: keep Gemma and embeddings loaded, shorter prompts (3 chunks, 4096 context), stream chat tokens. |
 | 2026-10-19 | Release 1.1.13: chat model switched to Gemma 3 1B (`gemma3:1b`) so CPU answers start sooner. Embeddings stay `nomic-embed-text`. |
 | 2026-10-19 | Ask page shows time to first word and time until the reply finishes, to the left of Copy. |
+| 2026-10-19 | Release 1.1.14: admins can import public OFRCNews.com pages, posts, and PDFs into the knowledge base. Chat still answers only from trained material. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*
