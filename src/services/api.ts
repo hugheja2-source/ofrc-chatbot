@@ -148,13 +148,80 @@ export const api = {
   deleteFact: (id: number) =>
     request<{ ok: boolean }>(`/topics/facts/${id}`, { method: 'DELETE' }),
 
-  chat: (message: string, sessionId?: string | null) =>
-    request<{
-      sessionId: string;
-      answer: string;
-      sources: { document: string; distance?: number }[];
-    }>('/chat', {
-      method: 'POST',
-      body: JSON.stringify({ message, sessionId }),
-    }),
+  chat: (
+    message: string,
+    sessionId: string | null | undefined,
+    onToken: (text: string) => void
+  ) => streamChat(message, sessionId, onToken),
 };
+
+export type ChatResult = {
+  sessionId: string;
+  answer: string;
+  sources: { document: string }[];
+};
+
+async function streamChat(
+  message: string,
+  sessionId: string | null | undefined,
+  onToken: (text: string) => void
+): Promise<ChatResult> {
+  const res = await fetch(`${API_BASE}/chat`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+    },
+    body: JSON.stringify({ message, sessionId }),
+  });
+
+  const contentType = res.headers.get('content-type') || '';
+  if (!res.ok || !contentType.includes('text/event-stream')) {
+    const data = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(data.error || `Request failed (${res.status})`);
+  }
+  if (!res.body) {
+    throw new Error('Chat failed');
+  }
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let result: ChatResult | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const parts = buffer.split('\n\n');
+    buffer = parts.pop() || '';
+    for (const part of parts) {
+      let event = 'message';
+      const dataLines: string[] = [];
+      for (const line of part.split('\n')) {
+        if (line.startsWith('event:')) event = line.slice(6).trim();
+        else if (line.startsWith('data:')) dataLines.push(line.slice(5).trim());
+      }
+      if (!dataLines.length) continue;
+      const data = JSON.parse(dataLines.join('\n')) as {
+        text?: string;
+        error?: string;
+        sessionId?: string;
+        answer?: string;
+        sources?: { document: string }[];
+      };
+      if (event === 'token' && data.text) onToken(data.text);
+      if (event === 'error') throw new Error(data.error || 'Chat failed');
+      if (event === 'done' && data.sessionId && data.answer) {
+        result = {
+          sessionId: data.sessionId,
+          answer: data.answer,
+          sources: data.sources || [],
+        };
+      }
+    }
+  }
+
+  if (!result) throw new Error('Chat ended before a reply was saved');
+  return result;
+}

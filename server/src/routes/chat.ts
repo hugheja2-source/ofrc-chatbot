@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { randomUUID } from 'crypto';
 import { config } from '../config';
 import { query } from '../db/pool';
-import { generateGroundedReply, ChatTurn } from '../services/ollama';
+import { streamGroundedReply, ChatTurn } from '../services/ollama';
 import { searchChunks } from '../services/ingest';
 
 export const chatRouter = Router();
@@ -52,23 +52,38 @@ chatRouter.post('/', chatLimiter, async (req, res, next) => {
 
     let chunks: Awaited<ReturnType<typeof searchChunks>> = [];
     try {
-      chunks = await searchChunks(message, 6);
+      chunks = await searchChunks(message, 4);
     } catch (err) {
       console.error('Retrieval failed:', err);
     }
 
     const strongChunks = chunks.filter((c) => Number(c.distance) < 0.55);
-    const usedChunks = strongChunks.length > 0 ? strongChunks : chunks.slice(0, 3);
+    const usedChunks = (strongChunks.length > 0 ? strongChunks : chunks).slice(0, 3);
     const contextChunks = usedChunks.map((c) => ({
       content: c.content,
       documentFilename: c.original_filename,
     }));
 
-    const { answer: rawAnswer } = await generateGroundedReply({
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    res.flushHeaders();
+    res.socket?.setNoDelay(true);
+
+    const writeEvent = (event: string, data: unknown) => {
+      res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+    };
+
+    let rawAnswer = '';
+    for await (const token of streamGroundedReply({
       question: message,
       contextChunks,
       history,
-    });
+    })) {
+      rawAnswer += token;
+      writeEvent('token', { text: token });
+    }
 
     const sourceNames = [
       ...new Set(usedChunks.map((c) => c.original_filename).filter(Boolean)),
@@ -77,13 +92,18 @@ chatRouter.post('/', chatLimiter, async (req, res, next) => {
       /do not have that information|don't have that information|no matching|not in the club documents/i.test(
         rawAnswer
       );
-    let answer = rawAnswer;
+    let answer = rawAnswer.trim();
+    if (!answer) {
+      throw new Error('OLLAMA_ERROR: empty chat response');
+    }
     if (sourceNames.length > 0 && !looksLikeRefusal) {
       const missingCitation = sourceNames.some(
         (name) => !rawAnswer.toLowerCase().includes(name.toLowerCase())
       );
       if (missingCitation) {
-        answer = `${rawAnswer}\n\nReferences: ${sourceNames.join(', ')}`;
+        const extra = `\n\nReferences: ${sourceNames.join(', ')}`;
+        answer = `${answer}${extra}`;
+        writeEvent('token', { text: extra });
       }
     }
 
@@ -92,23 +112,35 @@ chatRouter.post('/', chatLimiter, async (req, res, next) => {
       [sessionId, answer]
     );
 
-    res.json({
+    writeEvent('done', {
       sessionId,
       answer,
       sources: sourceNames.map((document) => ({ document })),
     });
+    res.end();
     } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    if (message.includes('OLLAMA_UNAVAILABLE') || message.includes('OLLAMA_MODEL_MISSING')) {
-      res.status(503).json({
-        error: 'The on-server AI model is unavailable. Please try again in a moment.',
-      });
+    const publicError =
+      message.includes('OLLAMA_UNAVAILABLE') || message.includes('OLLAMA_MODEL_MISSING')
+        ? 'The on-server AI model is unavailable. Please try again in a moment.'
+        : message.includes('OLLAMA_TIMEOUT') || message.includes('AbortError')
+          ? 'The AI model took too long to answer. Please try a shorter question.'
+          : '';
+    if (res.headersSent) {
+      res.write(
+        `event: error\ndata: ${JSON.stringify({
+          error: publicError || 'Chat failed. Please try again.',
+        })}\n\n`
+      );
+      res.end();
       return;
     }
-    if (message.includes('OLLAMA_TIMEOUT') || message.includes('AbortError')) {
-      res.status(504).json({
-        error: 'The AI model took too long to answer. Please try a shorter question.',
-      });
+    if (publicError && (message.includes('OLLAMA_UNAVAILABLE') || message.includes('OLLAMA_MODEL_MISSING'))) {
+      res.status(503).json({ error: publicError });
+      return;
+    }
+    if (publicError) {
+      res.status(504).json({ error: publicError });
       return;
     }
     next(err);

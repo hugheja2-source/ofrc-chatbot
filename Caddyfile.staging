@@ -8,11 +8,11 @@ http://chat-staging.ofrc-admin.com {
 }
 
 http://api-chat-staging.ofrc-admin.com {
-	encode gzip zstd
 	request_body {
 		max_size 30MB
 	}
 	reverse_proxy api:4100 {
+		flush_interval -1
 		transport http {
 			response_header_timeout 180s
 			read_timeout 180s

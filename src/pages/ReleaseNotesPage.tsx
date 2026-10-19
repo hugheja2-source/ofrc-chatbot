@@ -45,6 +45,10 @@ export function ReleaseNotesPage() {
           <ul>
             <li>Public chat and document training call Ollama on the VPS.</li>
             <li>
+              Gemma and the embedding model stay loaded together. Each answer uses at most 3
+              document chunks and a 4096-token context. Reply text appears as it is written.
+            </li>
+            <li>
               Everyone sees Release {APP_RELEASE} and “{POWERED_BY}” as plain text in the
               header. That line is not a link. These notes are only available to signed-in
               admins.

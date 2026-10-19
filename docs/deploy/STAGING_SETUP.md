@@ -67,7 +67,7 @@ docker exec ofrc-ollama ollama pull gemma3:4b
 docker exec ofrc-ollama ollama pull nomic-embed-text
 ```
 
-Chat model: **Gemma 3 4B** (`gemma3:4b`, Gemma Terms of Use). Embeddings: **nomic-embed-text** (768-dim, Apache 2.0). Memory cap on the container is 6 GB, with one model loaded at a time. Do not use `qwen2.5:3b` for this app; that Ollama build is research-only.
+Chat model: **Gemma 3 4B** (`gemma3:4b`, Gemma Terms of Use). Embeddings: **nomic-embed-text** (768-dim, Apache 2.0). The container may use 7 GB and both CPUs, and both models stay loaded. Chat answers stream. Do not use `qwen2.5:3b` for this app; that Ollama build is research-only.
 
 ## Deploy app code
 

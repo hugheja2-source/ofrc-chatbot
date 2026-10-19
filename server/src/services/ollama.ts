@@ -46,7 +46,7 @@ export async function embedText(
   const payload = (await ollamaFetch('/api/embed', {
     model: config.ollamaEmbedModel,
     input: `${prefix}${text.slice(0, 2000)}`,
-    keep_alive: '2m',
+    keep_alive: '10m',
   })) as { embeddings?: number[][] };
 
   const values = payload.embeddings?.[0];
@@ -78,11 +78,11 @@ Never invent rules, fees, dates, or policies not present in the context.
 When your answer is based on document excerpts, name the source file(s) in the answer
 (for example: "According to cabin-rules.pdf, …"). Do not invent filenames.`;
 
-export async function generateGroundedReply(params: {
+function buildChatMessages(params: {
   question: string;
   contextChunks: ContextChunk[];
   history: ChatTurn[];
-}): Promise<{ answer: string; needsClarification: boolean }> {
+}): OllamaMessage[] {
   const contextBlock =
     params.contextChunks.length > 0
       ? params.contextChunks
@@ -101,7 +101,7 @@ ${params.question}
 
 Respond with plain text for the user. If you used any source files above, mention those filenames in your answer.`;
 
-  const messages: OllamaMessage[] = [
+  return [
     { role: 'system', content: SYSTEM_INSTRUCTION },
     ...params.history.slice(-6).map(
       (turn): OllamaMessage => ({
@@ -111,25 +111,94 @@ Respond with plain text for the user. If you used any source files above, mentio
     ),
     { role: 'user', content: prompt },
   ];
+}
 
-  const payload = (await ollamaFetch('/api/chat', {
+function chatRequestBody(messages: OllamaMessage[], stream: boolean) {
+  return {
     model: config.ollamaChatModel,
-    stream: false,
+    stream,
     messages,
     keep_alive: '10m',
     options: {
       temperature: 0.2,
       num_ctx: config.ollamaNumCtx,
-      num_predict: 600,
+      num_predict: 400,
     },
-  })) as { message?: { content?: string } };
+  };
+}
 
-  const answer = (payload.message?.content || '').trim();
-  if (!answer) {
-    throw new Error('OLLAMA_ERROR: empty chat response');
+export async function* streamGroundedReply(params: {
+  question: string;
+  contextChunks: ContextChunk[];
+  history: ChatTurn[];
+}): AsyncGenerator<string> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 180_000);
+  let response: Response;
+  try {
+    response = await fetch(`${config.ollamaBaseUrl}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(chatRequestBody(buildChatMessages(params), true)),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    const reason = err instanceof Error ? err.message : String(err);
+    if (/abort/i.test(reason)) {
+      throw new Error(`OLLAMA_TIMEOUT: ${config.ollamaChatModel} did not respond in time`);
+    }
+    throw new Error(`OLLAMA_UNAVAILABLE: cannot reach ${config.ollamaBaseUrl} (${reason})`);
   }
-  const needsClarification = /\?/.test(answer) && answer.split('?').length <= 3;
-  return { answer, needsClarification };
+
+  if (!response.ok) {
+    clearTimeout(timer);
+    const payload = (await response.json().catch(() => ({}))) as { error?: string };
+    const detail = payload.error || `HTTP ${response.status}`;
+    if (/not found|try pulling/i.test(detail)) {
+      throw new Error(`OLLAMA_MODEL_MISSING: ${detail}`);
+    }
+    throw new Error(`OLLAMA_ERROR: ${detail}`);
+  }
+  if (!response.body) {
+    clearTimeout(timer);
+    throw new Error('OLLAMA_ERROR: empty chat stream');
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) continue;
+        const chunk = JSON.parse(trimmed) as {
+          message?: { content?: string };
+          error?: string;
+        };
+        if (chunk.error) {
+          throw new Error(`OLLAMA_ERROR: ${chunk.error}`);
+        }
+        const text = chunk.message?.content || '';
+        if (text) yield text;
+      }
+    }
+  } catch (err) {
+    const reason = err instanceof Error ? err.message : String(err);
+    if (reason.startsWith('OLLAMA_')) throw err;
+    if (/abort/i.test(reason)) {
+      throw new Error(`OLLAMA_TIMEOUT: ${config.ollamaChatModel} did not respond in time`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export type ExtractedTopic = {

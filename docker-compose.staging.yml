@@ -39,7 +39,7 @@ services:
       OLLAMA_BASE_URL: http://ofrc-ollama:11434
       OLLAMA_CHAT_MODEL: gemma3:4b
       OLLAMA_EMBED_MODEL: nomic-embed-text
-      OLLAMA_NUM_CTX: "8192"
+      OLLAMA_NUM_CTX: "4096"
     volumes:
       - /var/www/ofrc/chatbot/staging/uploads:/var/www/ofrc/chatbot/staging/uploads
     extra_hosts:

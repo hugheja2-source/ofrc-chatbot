@@ -63,6 +63,7 @@ export function ChatPage() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [receiving, setReceiving] = useState(false);
   const [error, setError] = useState('');
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -101,20 +102,31 @@ export function ChatPage() {
     setMessages((m) => [...m, userMsg]);
     upsertRecent({ id: questionId, question: text, askedAt: Date.now() });
     setBusy(true);
+    setReceiving(false);
     setRecentOpen(false);
 
+    const assistantId = `${questionId}-a`;
     try {
-      const res = await api.chat(text, sessionId);
+      const res = await api.chat(text, sessionId, (token) => {
+        setReceiving(true);
+        setMessages((current) => {
+          const existing = current.find((msg) => msg.id === assistantId);
+          if (!existing) {
+            return [...current, { id: assistantId, role: 'assistant', content: token }];
+          }
+          return current.map((msg) =>
+            msg.id === assistantId ? { ...msg, content: msg.content + token } : msg
+          );
+        });
+      });
       setSessionId(res.sessionId);
       tabStore?.setItem(SESSION_KEY, res.sessionId);
       const sources = (res.sources || []).map((s) => s.document).filter(Boolean);
-      const assistantMsg: Msg = {
-        id: `${questionId}-a`,
-        role: 'assistant',
-        content: res.answer,
-        sources,
-      };
-      setMessages((m) => [...m, assistantMsg]);
+      setMessages((current) =>
+        current.map((msg) =>
+          msg.id === assistantId ? { ...msg, content: res.answer, sources } : msg
+        )
+      );
       upsertRecent({
         id: questionId,
         question: text,
@@ -126,6 +138,7 @@ export function ChatPage() {
       setError(err instanceof Error ? err.message : 'Chat failed');
     } finally {
       setBusy(false);
+      setReceiving(false);
     }
   }
 
@@ -273,7 +286,7 @@ export function ChatPage() {
               )}
             </div>
           ))}
-          {busy && <p className="muted chat-thinking">Thinking…</p>}
+          {busy && !receiving && <p className="muted chat-thinking">Thinking…</p>}
           <div ref={bottomRef} />
         </div>
 

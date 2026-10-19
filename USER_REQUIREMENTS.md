@@ -25,7 +25,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 **Stack:** React + TypeScript + Vite (frontend); Express + TypeScript (API); PostgreSQL + `pgvector` (host DB); Ollama on the VPS (chat + embeddings); Docker Compose + Nginx aligned with Member Portal.
 
-**Current release:** 1.1.11. The header shows `Release 1.1.11` and `powered by Gemma 3 4B (gemma3:4b)` as plain text for everyone. That line is not a link. Release notes are admin-only (`/admin/release-notes`).
+**Current release:** 1.1.12. The header shows `Release 1.1.12` and `powered by Gemma 3 4B (gemma3:4b)` as plain text for everyone. That line is not a link. Release notes are admin-only (`/admin/release-notes`).
 
 ---
 
@@ -142,7 +142,7 @@ LLM runs on the club VPS with [Ollama](https://ollama.com) (no paid API, no Gemi
 | Chat and topic extraction | Gemma 3 4B | `gemma3:4b` | Gemma Terms of Use (free for club Q&A). About 3.4 GB on disk, Q4_K_M. One model loaded at a time inside a 6 GB container limit. |
 | Embeddings | nomic-embed-text | `nomic-embed-text` | 768 dimensions, matching `chunks.embedding vector(768)`. |
 
-Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member portal and other club apps. There is no swap, so 7B models are out. Qwen2.5 3B was not selected: the Ollama build is under the Qwen Research License (non-commercial research and evaluation only). Context is capped at 8192 tokens. One Ollama container (`ofrc-ollama` on the `ofrc_ollama` network, bound to `127.0.0.1:11434`) is shared by staging and production. Switching the embedding model requires re-training every document; Gemini vectors are not compatible even at the same dimension. Topic extraction uses the start of long PDFs so the prompt fits that context window.
+Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member portal and other club apps. There is no swap, so 7B models are out. Qwen2.5 3B was not selected: the Ollama build is under the Qwen Research License (non-commercial research and evaluation only). Context is capped at 4096 tokens, and a chat prompt uses at most 3 retrieved chunks. Gemma and the embedding model both stay loaded. Answers stream to the page as tokens arrive. One Ollama container (`ofrc-ollama` on the `ofrc_ollama` network, bound to `127.0.0.1:11434`, 7 GB memory cap, both CPUs) is shared by staging and production. Switching the embedding model requires re-training every document; Gemini vectors are not compatible even at the same dimension. Topic extraction uses the start of long PDFs so the prompt fits that context window.
 
 ---
 
@@ -189,5 +189,6 @@ Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member port
 | 2026-10-19 | Release 1.1.0: chat and embeddings moved from Gemini to Ollama 0.40.6 on the VPS. Chat model Gemma 3 4B (`gemma3:4b`). Embeddings `nomic-embed-text` (768-dim). Header shows release number and powered-by line. Documents must be re-trained. |
 | 2026-10-19 | Release 1.1.10: release notes are admin-only. Public header still shows release 1.1.10 and the AI model. |
 | 2026-10-19 | Release 1.1.11: header release number is plain text for everyone, with no link to release notes. |
+| 2026-10-19 | Release 1.1.12: keep Gemma and embeddings loaded, shorter prompts (3 chunks, 4096 context), stream chat tokens. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*
