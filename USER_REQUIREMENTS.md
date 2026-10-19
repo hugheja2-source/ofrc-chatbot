@@ -25,7 +25,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 **Stack:** React + TypeScript + Vite (frontend); Express + TypeScript (API); PostgreSQL + `pgvector` (host DB); Ollama on the VPS (chat + embeddings); Docker Compose + Nginx aligned with Member Portal.
 
-**Current release:** 1.1.10. The header shows `Release 1.1.10` and `powered by Gemma 3 4B (gemma3:4b)` to everyone. Release notes are admin-only (`/admin/release-notes`).
+**Current release:** 1.1.11. The header shows `Release 1.1.11` and `powered by Gemma 3 4B (gemma3:4b)` as plain text for everyone. That line is not a link. Release notes are admin-only (`/admin/release-notes`).
 
 ---
 
@@ -39,7 +39,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 - View last five questions in a sidebar (this browser tab only).
 - Copy assistant responses to the clipboard.
 - Start a new chat session.
-- See the release number and “powered by” the chat model name and version in the site header. Release notes are not on the public site.
+- See the release number and “powered by” the chat model name and version in the site header as plain text, with no link to release notes.
 
 ### 2.2 Admin
 
@@ -188,5 +188,6 @@ Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member port
 | 2026-10-18 | OFRC logo added to site header brand |
 | 2026-10-19 | Release 1.1.0: chat and embeddings moved from Gemini to Ollama 0.40.6 on the VPS. Chat model Gemma 3 4B (`gemma3:4b`). Embeddings `nomic-embed-text` (768-dim). Header shows release number and powered-by line. Documents must be re-trained. |
 | 2026-10-19 | Release 1.1.10: release notes are admin-only. Public header still shows release 1.1.10 and the AI model. |
+| 2026-10-19 | Release 1.1.11: header release number is plain text for everyone, with no link to release notes. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*

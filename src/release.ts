@@ -1,5 +1,5 @@
 /** Keep in sync with server/src/config.ts when cutting a release. */
-export const APP_RELEASE = '1.1.10';
+export const APP_RELEASE = '1.1.11';
 
 export const CHAT_MODEL_NAME = 'Gemma 3 4B';
 export const CHAT_MODEL_VERSION = 'gemma3:4b';

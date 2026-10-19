@@ -54,11 +54,7 @@ export function App() {
           </nav>
         </div>
         <p className="release-line">
-          {localStorage.getItem('ofrc_chat_token') ? (
-            <Link to="/admin/release-notes">Release {APP_RELEASE}</Link>
-          ) : (
-            <span>Release {APP_RELEASE}</span>
-          )}
+          <span>Release {APP_RELEASE}</span>
           <span> · {poweredBy}</span>
         </p>
       </header>

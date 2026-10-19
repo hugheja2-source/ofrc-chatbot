@@ -45,8 +45,9 @@ export function ReleaseNotesPage() {
           <ul>
             <li>Public chat and document training call Ollama on the VPS.</li>
             <li>
-              Everyone sees Release {APP_RELEASE} and “{POWERED_BY}” in the header. These notes
-              are only available to signed-in admins.
+              Everyone sees Release {APP_RELEASE} and “{POWERED_BY}” as plain text in the
+              header. That line is not a link. These notes are only available to signed-in
+              admins.
             </li>
             <li>
               Existing documents must be re-trained. Embeddings from Gemini are not compatible
