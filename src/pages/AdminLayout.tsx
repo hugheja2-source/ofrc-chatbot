@@ -32,6 +32,7 @@ export function AdminLayout() {
           <NavLink to="/admin/documents">Documents</NavLink>
           <NavLink to="/admin/account">Account</NavLink>
           <NavLink to="/admin/help">Help</NavLink>
+          <NavLink to="/admin/release-notes">Release notes</NavLink>
           <Link to="/">Public chat</Link>
           <button type="button" className="btn secondary" onClick={logout}>
             Log out

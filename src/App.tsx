@@ -54,14 +54,18 @@ export function App() {
           </nav>
         </div>
         <p className="release-line">
-          <Link to="/release-notes">Release {APP_RELEASE}</Link>
+          {localStorage.getItem('ofrc_chat_token') ? (
+            <Link to="/admin/release-notes">Release {APP_RELEASE}</Link>
+          ) : (
+            <span>Release {APP_RELEASE}</span>
+          )}
           <span> · {poweredBy}</span>
         </p>
       </header>
       <div className="app-main">
         <Routes>
         <Route path="/" element={<ChatPage />} />
-        <Route path="/release-notes" element={<ReleaseNotesPage />} />
+        <Route path="/release-notes" element={<Navigate to="/admin/release-notes" replace />} />
         <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route
           path="/admin"
@@ -76,6 +80,7 @@ export function App() {
           <Route path="documents" element={<AdminDocumentsPage />} />
           <Route path="account" element={<AdminAccountPage />} />
           <Route path="help" element={<AdminHelpPage />} />
+          <Route path="release-notes" element={<ReleaseNotesPage />} />
         </Route>
         </Routes>
       </div>

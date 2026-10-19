@@ -25,7 +25,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 **Stack:** React + TypeScript + Vite (frontend); Express + TypeScript (API); PostgreSQL + `pgvector` (host DB); Ollama on the VPS (chat + embeddings); Docker Compose + Nginx aligned with Member Portal.
 
-**Current release:** 1.1.0. The header shows `Release 1.1.0` (links to `/release-notes`) and `powered by Gemma 3 4B (gemma3:4b)`.
+**Current release:** 1.1.10. The header shows `Release 1.1.10` and `powered by Gemma 3 4B (gemma3:4b)` to everyone. Release notes are admin-only (`/admin/release-notes`).
 
 ---
 
@@ -39,7 +39,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 - View last five questions in a sidebar (this browser tab only).
 - Copy assistant responses to the clipboard.
 - Start a new chat session.
-- See the release number (links to in-app release notes) and “powered by” the chat model name and version in the site header.
+- See the release number and “powered by” the chat model name and version in the site header. Release notes are not on the public site.
 
 ### 2.2 Admin
 
@@ -116,6 +116,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 ### 4.4 Help
 
 - In-app Admin Help guide describing how to use admin features (see [docs/ADMIN_HELP_GUIDE.md](docs/ADMIN_HELP_GUIDE.md)).
+- Read release notes (Admin → Release notes). Signed-out visitors cannot open them.
 
 ---
 
@@ -185,6 +186,7 @@ Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member port
 | 2026-10-18 | Admins can change category on an existing document |
 | 2026-10-18 | Default chat model switched to gemini-3.1-flash-lite (free-tier quota); clearer 429 errors |
 | 2026-10-18 | OFRC logo added to site header brand |
-| 2026-10-19 | Release 1.1.0: chat and embeddings moved from Gemini to Ollama 0.40.6 on the VPS. Chat model Gemma 3 4B (`gemma3:4b`). Embeddings `nomic-embed-text` (768-dim). Header shows release number, release notes link, and powered-by line. Documents must be re-trained. |
+| 2026-10-19 | Release 1.1.0: chat and embeddings moved from Gemini to Ollama 0.40.6 on the VPS. Chat model Gemma 3 4B (`gemma3:4b`). Embeddings `nomic-embed-text` (768-dim). Header shows release number and powered-by line. Documents must be re-trained. |
+| 2026-10-19 | Release 1.1.10: release notes are admin-only. Public header still shows release 1.1.10 and the AI model. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*

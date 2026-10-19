@@ -2,7 +2,7 @@
 
 Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask questions; admins upload PDFs and train a RAG knowledge base. Answers stay grounded in uploaded documents. Chat and embeddings run on a free Ollama model on the club VPS (no web search).
 
-**Release 1.1.0** — powered by Gemma 3 4B (`gemma3:4b`). Embeddings: `nomic-embed-text`.
+**Release 1.1.10** — powered by Gemma 3 4B (`gemma3:4b`). Embeddings: `nomic-embed-text`. Release notes are admin-only.
 
 ## Stack
 

@@ -9,8 +9,7 @@ import {
 
 export function ReleaseNotesPage() {
   return (
-    <main className="page">
-      <article className="panel release-notes">
+    <article className="panel release-notes">
         <h1>Release {APP_RELEASE}</h1>
         <p className="muted">October 19, 2026 · {POWERED_BY}</p>
 
@@ -46,7 +45,8 @@ export function ReleaseNotesPage() {
           <ul>
             <li>Public chat and document training call Ollama on the VPS.</li>
             <li>
-              The header shows this release number, a link to these notes, and “{POWERED_BY}”.
+              Everyone sees Release {APP_RELEASE} and “{POWERED_BY}” in the header. These notes
+              are only available to signed-in admins.
             </li>
             <li>
               Existing documents must be re-trained. Embeddings from Gemini are not compatible
@@ -67,6 +67,5 @@ export function ReleaseNotesPage() {
           </p>
         </section>
       </article>
-    </main>
   );
 }
