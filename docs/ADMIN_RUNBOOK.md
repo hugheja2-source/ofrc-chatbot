@@ -66,11 +66,18 @@ curl -fsS https://api-chat-staging.ofrc-admin.com/api/health
 curl -fsS -I https://chat-staging.ofrc-admin.com/
 ```
 
-On the VPS:
+On the VPS, right after `docker compose up -d`, the proxy can return 502 until the new frontend is listening. Retry instead of treating that first 502 as a failure:
 
 ```bash
-curl -fsS -H "Host: api-chat-staging.ofrc-admin.com" http://127.0.0.1:8089/api/health
+curl -fsS -H "Host: chat-staging.ofrc-admin.com" -o /dev/null \
+  --retry 10 --retry-delay 2 --retry-all-errors \
+  "http://127.0.0.1:8089/"
+curl -fsS -H "Host: api-chat-staging.ofrc-admin.com" \
+  --retry 10 --retry-delay 2 --retry-all-errors \
+  "http://127.0.0.1:8089/api/health"
 ```
+
+Deploy scripts already do this. See [docs/deploy/STAGING_SETUP.md](deploy/STAGING_SETUP.md).
 
 ## Important limits
 

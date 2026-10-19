@@ -37,7 +37,21 @@ docker network inspect ofrc_ollama >/dev/null 2>&1 || { echo "Missing ofrc_ollam
 docker compose -f docker-compose.production.yml build api migrate frontend
 docker compose -f docker-compose.production.yml --profile tools run -T --rm migrate </dev/null
 docker compose -f docker-compose.production.yml up -d
-curl -fsS -H "Host: chat.ofrc-admin.com" -o /dev/null --connect-timeout 5 "http://127.0.0.1:8091/"
-curl -fsS -H "Host: api-chat.ofrc-admin.com" --connect-timeout 5 "http://127.0.0.1:8091/api/health"
+wait_for() {
+  local name="\$1"
+  shift
+  local attempt
+  for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    if "\$@"; then
+      return 0
+    fi
+    echo "\${name} not ready (attempt \${attempt})"
+    sleep 2
+  done
+  echo "\${name} did not become ready"
+  return 1
+}
+wait_for "frontend" curl -fsS -H "Host: chat.ofrc-admin.com" -o /dev/null --connect-timeout 5 --max-time 15 "http://127.0.0.1:8091/"
+wait_for "api" curl -fsS -H "Host: api-chat.ofrc-admin.com" --connect-timeout 5 --max-time 15 "http://127.0.0.1:8091/api/health"
 echo "PRODUCTION_DEPLOY_OK"
 EOF

@@ -80,6 +80,25 @@ chmod +x deploy-staging.sh
 
 Or push to the `staging` branch to run GitHub Actions on runner `ofrc-vps`.
 
+## Health check after the containers start
+
+`docker compose up -d` prints `Started` as soon as the process starts. The new frontend is not listening yet. Caddy on `127.0.0.1:8089` answers that gap with **502** (`dial tcp …:80: connect: connection refused`). That first 502 is the startup gap, not a bad build. A single `curl` in the GitHub job will fail the deploy even though the site is fine a second later.
+
+`deploy-staging.sh` and `.github/scripts/deploy-staging-on-vps.sh` retry the frontend page and `/api/health` for about 20 seconds (10 attempts, 2 seconds apart). The job fails only if both checks are still failing after that. Production uses the same retry on port `8091`.
+
+A manual check on the VPS should retry the same way:
+
+```bash
+curl -fsS -H "Host: chat-staging.ofrc-admin.com" -o /dev/null \
+  --retry 10 --retry-delay 2 --retry-all-errors \
+  "http://127.0.0.1:8089/"
+curl -fsS -H "Host: api-chat-staging.ofrc-admin.com" \
+  --retry 10 --retry-delay 2 --retry-all-errors \
+  "http://127.0.0.1:8089/api/health"
+```
+
+`--retry-all-errors` is required. Plain `--retry` does not retry an HTTP 502.
+
 ## After first deploy
 
 1. Open https://chat-staging.ofrc-admin.com/admin/login

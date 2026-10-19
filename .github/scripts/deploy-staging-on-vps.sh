@@ -26,6 +26,23 @@ docker compose -f docker-compose.staging.yml build api migrate frontend
 docker compose -f docker-compose.staging.yml --profile tools run -T --rm migrate </dev/null
 docker compose -f docker-compose.staging.yml up -d
 
-curl -fsS -H "Host: chat-staging.ofrc-admin.com" -o /dev/null --connect-timeout 5 "http://127.0.0.1:8089/"
-curl -fsS -H "Host: api-chat-staging.ofrc-admin.com" --connect-timeout 5 "http://127.0.0.1:8089/api/health"
+# Compose reports Started before Caddy inside the new container is listening.
+# A single curl in that gap gets 502 from the proxy and fails the job.
+wait_for() {
+  local name="$1"
+  shift
+  local attempt
+  for attempt in 1 2 3 4 5 6 7 8 9 10; do
+    if "$@"; then
+      return 0
+    fi
+    echo "${name} not ready (attempt ${attempt})"
+    sleep 2
+  done
+  echo "${name} did not become ready"
+  return 1
+}
+
+wait_for "frontend" curl -fsS -H "Host: chat-staging.ofrc-admin.com" -o /dev/null --connect-timeout 5 --max-time 15 "http://127.0.0.1:8089/"
+wait_for "api" curl -fsS -H "Host: api-chat-staging.ofrc-admin.com" --connect-timeout 5 --max-time 15 "http://127.0.0.1:8089/api/health"
 echo "STAGING_DEPLOY_OK"
