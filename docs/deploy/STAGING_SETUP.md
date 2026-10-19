@@ -63,11 +63,11 @@ sudo mkdir -p /opt/ofrc/ollama
 sudo cp deploy/ollama/docker-compose.yml /opt/ofrc/ollama/docker-compose.yml
 cd /opt/ofrc/ollama
 docker compose up -d
-docker exec ofrc-ollama ollama pull gemma3:4b
+docker exec ofrc-ollama ollama pull gemma3:1b
 docker exec ofrc-ollama ollama pull nomic-embed-text
 ```
 
-Chat model: **Gemma 3 4B** (`gemma3:4b`, Gemma Terms of Use). Embeddings: **nomic-embed-text** (768-dim, Apache 2.0). The container may use 7 GB and both CPUs, and both models stay loaded. Chat answers stream. Do not use `qwen2.5:3b` for this app; that Ollama build is research-only.
+Chat model: **Gemma 3 1B** (`gemma3:1b`, Gemma Terms of Use). Embeddings: **nomic-embed-text** (768-dim, Apache 2.0). The container may use 7 GB and both CPUs, and the chat model and embeddings stay loaded. Chat answers stream. Do not use `qwen2.5:3b` for this app; that Ollama build is research-only. Gemma 3 4B can stay on disk, but it is not the chat model.
 
 ## Deploy app code
 

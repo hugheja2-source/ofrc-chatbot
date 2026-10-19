@@ -2,14 +2,14 @@
 
 Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask questions; admins upload PDFs and train a RAG knowledge base. Answers stay grounded in uploaded documents. Chat and embeddings run on a free Ollama model on the club VPS (no web search).
 
-**Release 1.1.12** — powered by Gemma 3 4B (`gemma3:4b`). Embeddings: `nomic-embed-text`. Chat tokens stream. The header release number is plain text. Release notes are admin-only.
+**Release 1.1.13** — powered by Gemma 3 1B (`gemma3:1b`). Embeddings: `nomic-embed-text`. Chat tokens stream. The header release number is plain text. Release notes are admin-only.
 
 ## Stack
 
 - Frontend: React + TypeScript + Vite
 - API: Node.js + Express + TypeScript
 - DB: PostgreSQL + `pgvector` on the Hostinger VPS host
-- LLM: Ollama on the VPS (`gemma3:4b` chat, `nomic-embed-text` embeddings)
+- LLM: Ollama on the VPS (`gemma3:1b` chat, `nomic-embed-text` embeddings)
 - Deploy: Docker Compose + host Nginx/TLS (same pattern as Member Portal)
 
 ## URLs

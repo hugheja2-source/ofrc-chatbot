@@ -23,7 +23,8 @@ export function ReleaseNotesPage() {
             <li>
               <strong>Chat model:</strong> {CHAT_MODEL_NAME}, Ollama tag{' '}
               <code>{CHAT_MODEL_VERSION}</code> (Gemma Terms of Use). This is Google’s Gemma 3
-              4B instruction model, about 3.4 GB, quantized Q4_K_M. It is free to run for club
+              1B instruction model, about 806 MB. It replaced Gemma 3 4B so a question can start
+              while the club server is still doing the work on CPU. It is free to run for club
               questions.
             </li>
             <li>
@@ -33,10 +34,10 @@ export function ReleaseNotesPage() {
           </ul>
           <p>
             The VPS is a Hostinger KVM 2 with 2 CPUs and 8 GB of RAM, and it already runs the
-            member portal and other club apps. Gemma 3 4B is small enough to run there with one
-            model loaded at a time. Qwen2.5 3B was not used: the Ollama build is under the Qwen
-            Research License, which allows research and evaluation only. Larger 7B models would
-            crowd the other club services out. Ollama on the VPS is version 0.40.6.
+            member portal and other club apps. Gemma 3 1B and the embedding model stay loaded
+            together. Qwen2.5 3B was not used: the Ollama build is under the Qwen Research
+            License, which allows research and evaluation only. Larger models spend too long
+            reading the prompt on these two CPUs. Ollama on the VPS is version 0.40.6.
           </p>
         </section>
 
@@ -44,6 +45,10 @@ export function ReleaseNotesPage() {
           <h2>What changed</h2>
           <ul>
             <li>Public chat and document training call Ollama on the VPS.</li>
+            <li>
+              Chat uses Gemma 3 1B. Gemma 3 4B stayed loaded, but the first word still waited
+              about 20 seconds while the CPUs read the prompt.
+            </li>
             <li>
               Gemma and the embedding model stay loaded together. Each answer uses at most 3
               document chunks and a 4096-token context. Reply text appears as it is written.
@@ -67,8 +72,9 @@ export function ReleaseNotesPage() {
         <section>
           <h2>Admin action</h2>
           <p>
-            Re-train each ready document under <Link to="/admin/documents">Admin → Documents</Link>{' '}
-            so search uses the new embedding model.
+            No new training is required for this release. Search still uses{' '}
+            <code>{EMBED_MODEL_NAME}</code>. Documents only need a re-train when the embedding
+            model changes. Manage them under <Link to="/admin/documents">Admin → Documents</Link>.
           </p>
         </section>
       </article>

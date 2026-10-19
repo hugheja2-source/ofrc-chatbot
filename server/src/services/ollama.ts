@@ -75,8 +75,8 @@ If the context is insufficient, say you do not have that information in the club
 If the question is ambiguous, ask ONE short clarifying question instead of guessing.
 Be concise, friendly, and practical.
 Never invent rules, fees, dates, or policies not present in the context.
-When your answer is based on document excerpts, name the source file(s) in the answer
-(for example: "According to cabin-rules.pdf, …"). Do not invent filenames.`;
+When your answer is based on document excerpts, name the source file exactly as it appears in the context.
+Do not invent or shorten filenames.`;
 
 function buildChatMessages(params: {
   question: string;

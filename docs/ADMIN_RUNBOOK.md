@@ -37,7 +37,7 @@ Files live in `seed/documents/`:
 | Campground Rules | `campground-rules.pdf` |
 | Cabin Rules | `cabin-rules.pdf` |
 
-Local/API host with DB + Ollama configured (`gemma3:4b` and `nomic-embed-text`):
+Local/API host with DB + Ollama configured (`gemma3:1b` and `nomic-embed-text`):
 
 ```bash
 cd server

@@ -37,7 +37,7 @@ services:
       NODE_ENV: production
       ALLOWED_ORIGINS: https://chat-staging.ofrc-admin.com
       OLLAMA_BASE_URL: http://ofrc-ollama:11434
-      OLLAMA_CHAT_MODEL: gemma3:4b
+      OLLAMA_CHAT_MODEL: gemma3:1b
       OLLAMA_EMBED_MODEL: nomic-embed-text
       OLLAMA_NUM_CTX: "4096"
     volumes:
