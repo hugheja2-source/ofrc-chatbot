@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { config } from '../config';
 import { query } from '../db/pool';
 
 export const healthRouter = Router();
@@ -9,6 +10,10 @@ healthRouter.get('/health', async (_req, res) => {
     res.json({
       ok: true,
       service: 'ofrc-chatbot-api',
+      release: config.appRelease,
+      chatModel: config.ollamaChatModel,
+      chatModelName: config.chatModelName,
+      embedModel: config.ollamaEmbedModel,
       time: new Date().toISOString(),
     });
   } catch {

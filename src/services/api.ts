@@ -21,7 +21,14 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  health: () => request<{ ok: boolean }>('/health'),
+  health: () =>
+    request<{
+      ok: boolean;
+      release?: string;
+      chatModel?: string;
+      chatModelName?: string;
+      embedModel?: string;
+    }>('/health'),
 
   login: (username: string, password: string) =>
     request<{

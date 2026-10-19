@@ -36,12 +36,17 @@ services:
       PORT: "4100"
       NODE_ENV: production
       ALLOWED_ORIGINS: https://chat.ofrc-admin.com
+      OLLAMA_BASE_URL: http://ofrc-ollama:11434
+      OLLAMA_CHAT_MODEL: gemma3:4b
+      OLLAMA_EMBED_MODEL: nomic-embed-text
+      OLLAMA_NUM_CTX: "8192"
     volumes:
       - /var/www/ofrc/chatbot/production/uploads:/var/www/ofrc/chatbot/production/uploads
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
       - chatbot_production
+      - ofrc_ollama
 
   migrate:
     build:
@@ -63,3 +68,6 @@ services:
 networks:
   chatbot_production:
     name: chatbot_production
+  ofrc_ollama:
+    external: true
+    name: ofrc_ollama

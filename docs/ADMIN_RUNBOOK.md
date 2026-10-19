@@ -37,11 +37,11 @@ Files live in `seed/documents/`:
 | Campground Rules | `campground-rules.pdf` |
 | Cabin Rules | `cabin-rules.pdf` |
 
-Local/API host with DB + Gemini configured:
+Local/API host with DB + Ollama configured (`gemma3:4b` and `nomic-embed-text`):
 
 ```bash
 cd server
-cp .env.example .env   # fill GEMINI_API_KEY, DB_*, RECOVERY_PASSWORD
+cp .env.example .env   # fill OLLAMA_BASE_URL, DB_*, RECOVERY_PASSWORD
 npm install
 bash scripts/run-migrations.sh
 npm run seed
@@ -75,5 +75,6 @@ curl -fsS -H "Host: api-chat-staging.ofrc-admin.com" http://127.0.0.1:8089/api/h
 ## Important limits
 
 - Answers use **only** retrieved club documents (no web search).
-- Public chat is rate-limited to protect the free Gemini quota.
+- Public chat is rate-limited so the shared VPS stays responsive while Ollama is answering.
+- Release 1.1.0 embeddings are `nomic-embed-text`. Re-train existing documents after this upgrade (`npm run retrain` from `server/`, or Admin → Documents → Re-train). Gemini vectors are not reusable.
 - Keep `server/.env.*.docker` on the VPS only; never commit secrets.

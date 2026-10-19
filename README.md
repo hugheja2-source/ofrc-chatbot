@@ -1,12 +1,15 @@
 # OFRC Chatbot
 
-Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask questions; admins upload PDFs and train a RAG knowledge base. Answers stay grounded in uploaded documents (Gemini free tier; no web search).
+Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask questions; admins upload PDFs and train a RAG knowledge base. Answers stay grounded in uploaded documents. Chat and embeddings run on a free Ollama model on the club VPS (no web search).
+
+**Release 1.1.0** — powered by Gemma 3 4B (`gemma3:4b`). Embeddings: `nomic-embed-text`.
 
 ## Stack
 
 - Frontend: React + TypeScript + Vite
 - API: Node.js + Express + TypeScript
 - DB: PostgreSQL + `pgvector` on the Hostinger VPS host
+- LLM: Ollama on the VPS (`gemma3:4b` chat, `nomic-embed-text` embeddings)
 - Deploy: Docker Compose + host Nginx/TLS (same pattern as Member Portal)
 
 ## URLs
@@ -22,7 +25,8 @@ Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask quest
 # Terminal 1 — API
 cd server
 cp .env.example .env
-# Set DB_*, GEMINI_API_KEY, RECOVERY_PASSWORD
+# Set DB_*, OLLAMA_BASE_URL, RECOVERY_PASSWORD
+# Ollama must be running (local, or SSH tunnel to the VPS port 11434)
 npm install
 bash scripts/run-migrations.sh
 npm run dev

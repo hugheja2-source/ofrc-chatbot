@@ -23,7 +23,9 @@ A greenfield web application that answers questions about OFRC using **only** cl
 | Staging | https://chat-staging.ofrc-admin.com | https://api-chat-staging.ofrc-admin.com |
 | Production | https://chat.ofrc-admin.com | https://api-chat.ofrc-admin.com |
 
-**Stack:** React + TypeScript + Vite (frontend); Express + TypeScript (API); PostgreSQL + `pgvector` (host DB); Gemini free tier (chat + embeddings); Docker Compose + Nginx aligned with Member Portal.
+**Stack:** React + TypeScript + Vite (frontend); Express + TypeScript (API); PostgreSQL + `pgvector` (host DB); Ollama on the VPS (chat + embeddings); Docker Compose + Nginx aligned with Member Portal.
+
+**Current release:** 1.1.0. The header shows `Release 1.1.0` (links to `/release-notes`) and `powered by Gemma 3 4B (gemma3:4b)`.
 
 ---
 
@@ -37,6 +39,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 - View last five questions in a sidebar (this browser tab only).
 - Copy assistant responses to the clipboard.
 - Start a new chat session.
+- See the release number (links to in-app release notes) and “powered by” the chat model name and version in the site header.
 
 ### 2.2 Admin
 
@@ -73,7 +76,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 - Answers grounded only in retrieved club document chunks (no web search).
 - May ask clarifying questions when the query is ambiguous or retrieval is weak.
 - When answers use documents, include **reference file name(s)** in the response (and/or a References section).
-- Rate-limited public chat endpoint to protect free LLM quota.
+- Rate-limited public chat endpoint so the shared VPS stays responsive while the local model is answering.
 - **Copy** control on each assistant reply (copies answer + references when applicable).
 - **New chat** button: fixed size; not stretched by the instruction/contact column.
 
@@ -131,7 +134,14 @@ A greenfield web application that answers questions about OFRC using **only** cl
 | Campground Rules | `campground-rules.pdf` |
 | Cabin Rules | `cabin-rules.pdf` |
 
-LLM: Google Gemini (free tier). Embeddings via `gemini-embedding-001` (768-dim). Chat model configurable (default `gemini-3.8-flash`).
+LLM runs on the club VPS with [Ollama](https://ollama.com) (no paid API, no Gemini key).
+
+| Role | Model | Ollama tag | Notes |
+|------|--------|------------|--------|
+| Chat and topic extraction | Gemma 3 4B | `gemma3:4b` | Gemma Terms of Use (free for club Q&A). About 3.4 GB on disk, Q4_K_M. One model loaded at a time inside a 6 GB container limit. |
+| Embeddings | nomic-embed-text | `nomic-embed-text` | 768 dimensions, matching `chunks.embedding vector(768)`. |
+
+Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member portal and other club apps. There is no swap, so 7B models are out. Qwen2.5 3B was not selected: the Ollama build is under the Qwen Research License (non-commercial research and evaluation only). Context is capped at 8192 tokens. One Ollama container (`ofrc-ollama` on the `ofrc_ollama` network, bound to `127.0.0.1:11434`) is shared by staging and production. Switching the embedding model requires re-training every document; Gemini vectors are not compatible even at the same dimension. Topic extraction uses the start of long PDFs so the prompt fits that context window.
 
 ---
 
@@ -142,15 +152,18 @@ LLM: Google Gemini (free tier). Embeddings via `gemini-embedding-001` (768-dim).
 - Production (deferred): `/opt/ofrc/chatbot-production`, proxy `127.0.0.1:8091`, DB `chatbot_production`.
 - Secrets in VPS-only `server/.env.*.docker` (never commit).
 - Separate Compose project/network from Member Portal.
+- Ollama lives in `/opt/ofrc/ollama` (`deploy/ollama/docker-compose.yml`), not inside the chatbot compose project, so an app redeploy does not delete the models.
+- Chatbot API sets `OLLAMA_BASE_URL=http://ofrc-ollama:11434` and joins the `ofrc_ollama` network.
+- API proxy read timeout is 180s so CPU inference can finish.
 
 ---
 
 ## 7. Out of scope (v1)
 
 - Member Portal SSO / shared members table
-- Fully offline / on-VPS LLM (Ollama)
 - Internet search for answers
 - Native mobile apps
+- Models larger than Gemma 3 4B on this VPS
 
 ---
 
@@ -172,5 +185,6 @@ LLM: Google Gemini (free tier). Embeddings via `gemini-embedding-001` (768-dim).
 | 2026-10-18 | Admins can change category on an existing document |
 | 2026-10-18 | Default chat model switched to gemini-3.1-flash-lite (free-tier quota); clearer 429 errors |
 | 2026-10-18 | OFRC logo added to site header brand |
+| 2026-10-19 | Release 1.1.0: chat and embeddings moved from Gemini to Ollama 0.40.6 on the VPS. Chat model Gemma 3 4B (`gemma3:4b`). Embeddings `nomic-embed-text` (768-dim). Header shows release number, release notes link, and powered-by line. Documents must be re-trained. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*

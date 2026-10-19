@@ -1,0 +1,37 @@
+# Shared Ollama for the OFRC chatbot. One instance serves staging and production
+# so the 8 GB VPS does not load the model twice.
+# Listen on localhost only. The chatbot API reaches it on the ofrc_ollama network.
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ofrc-ollama
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      # One model resident at a time so chat and embeddings cannot exhaust RAM.
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_KEEP_ALIVE: "10m"
+      # Cap context so KV cache stays inside the 6 GB container limit for gemma3:4b.
+      OLLAMA_CONTEXT_LENGTH: "8192"
+    volumes:
+      - ollama_data:/root/.ollama
+    ports:
+      - "127.0.0.1:11434:11434"
+    mem_limit: 6g
+    cpus: 1.5
+    networks:
+      - ofrc_ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+networks:
+  ofrc_ollama:
+    name: ofrc_ollama
+
+volumes:
+  ollama_data:

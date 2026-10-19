@@ -1,6 +1,6 @@
 {
   "name": "ofrc-chatbot-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "OFRC Chatbot API",
   "main": "dist/index.js",
@@ -9,10 +9,10 @@
     "start": "node dist/index.js",
     "dev": "tsx watch src/index.ts",
     "migrate": "bash scripts/run-migrations.sh",
-    "seed": "tsx src/scripts/seed.ts"
+    "seed": "tsx src/scripts/seed.ts",
+    "retrain": "tsx src/scripts/retrain-all.ts"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.24.1",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",

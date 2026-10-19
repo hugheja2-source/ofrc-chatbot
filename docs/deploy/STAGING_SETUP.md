@@ -49,9 +49,25 @@ sudo certbot --nginx -d chat-staging.ofrc-admin.com -d api-chat-staging.ofrc-adm
 
 ```bash
 cp server/.env.staging.docker.example /opt/ofrc/chatbot-staging/server/.env.staging.docker
-# edit DB password, GEMINI_API_KEY, RECOVERY_PASSWORD
+# edit DB password and RECOVERY_PASSWORD
+# OLLAMA_BASE_URL=http://ofrc-ollama:11434
 chmod 600 /opt/ofrc/chatbot-staging/server/.env.staging.docker
 ```
+
+## Ollama (once per VPS)
+
+Shared by staging and production. Do not publish port 11434 on a public address. UFW already allows only 22, 80, and 443 from the internet; the compose file binds Ollama to `127.0.0.1:11434`.
+
+```bash
+sudo mkdir -p /opt/ofrc/ollama
+sudo cp deploy/ollama/docker-compose.yml /opt/ofrc/ollama/docker-compose.yml
+cd /opt/ofrc/ollama
+docker compose up -d
+docker exec ofrc-ollama ollama pull gemma3:4b
+docker exec ofrc-ollama ollama pull nomic-embed-text
+```
+
+Chat model: **Gemma 3 4B** (`gemma3:4b`, Gemma Terms of Use). Embeddings: **nomic-embed-text** (768-dim, Apache 2.0). Memory cap on the container is 6 GB, with one model loaded at a time. Do not use `qwen2.5:3b` for this app; that Ollama build is research-only.
 
 ## Deploy app code
 
@@ -68,8 +84,9 @@ Or push to the `staging` branch to run GitHub Actions on runner `ofrc-vps`.
 
 1. Open https://chat-staging.ofrc-admin.com/admin/login
 2. Sign in with recovery credentials from env
-3. Upload seed PDFs (or run seed from a machine with `GEMINI_API_KEY` and DB access)
-4. Ask a test question on the public chat page
+3. Upload seed PDFs (or run seed from a machine that can reach Ollama and the database)
+4. Re-train any documents that were embedded with Gemini
+5. Ask a test question on the public chat page
 
 ## Rollback Nginx only
 

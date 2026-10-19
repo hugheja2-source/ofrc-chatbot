@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { randomUUID } from 'crypto';
 import { config } from '../config';
 import { query } from '../db/pool';
-import { generateGroundedReply, ChatTurn } from '../services/gemini';
+import { generateGroundedReply, ChatTurn } from '../services/ollama';
 import { searchChunks } from '../services/ingest';
 
 export const chatRouter = Router();
@@ -99,20 +99,15 @@ chatRouter.post('/', chatLimiter, async (req, res, next) => {
     });
     } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    if (message.includes('GEMINI_API_KEY')) {
+    if (message.includes('OLLAMA_UNAVAILABLE') || message.includes('OLLAMA_MODEL_MISSING')) {
       res.status(503).json({
-        error:
-          'GEMINI_API_KEY is not configured. Add a free Google AI Studio key to server/.env and restart the API.',
+        error: 'The on-server AI model is unavailable. Please try again in a moment.',
       });
       return;
     }
-    if (
-      message.includes('429') ||
-      /quota|rate.?limit|Too Many Requests/i.test(message)
-    ) {
-      res.status(429).json({
-        error:
-          'The free Gemini quota for the chat model was exceeded. Wait for the daily reset, or set GEMINI_CHAT_MODEL in server/.env to another free model (for example gemini-3.1-flash-lite) and restart the API.',
+    if (message.includes('OLLAMA_TIMEOUT') || message.includes('AbortError')) {
+      res.status(504).json({
+        error: 'The AI model took too long to answer. Please try a shorter question.',
       });
       return;
     }

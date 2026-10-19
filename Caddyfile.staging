@@ -12,5 +12,11 @@ http://api-chat-staging.ofrc-admin.com {
 	request_body {
 		max_size 30MB
 	}
-	reverse_proxy api:4100
+	reverse_proxy api:4100 {
+		transport http {
+			response_header_timeout 180s
+			read_timeout 180s
+			write_timeout 180s
+		}
+	}
 }

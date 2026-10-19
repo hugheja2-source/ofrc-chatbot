@@ -26,8 +26,9 @@ ssh -i "${VPS_SSH_KEY}" "${VPS_USER}@${VPS_IP}" bash -s <<EOF
 set -euo pipefail
 cd "${VPS_DIR}"
 test -f server/.env.staging.docker || { echo "Missing server/.env.staging.docker on VPS"; exit 1; }
+docker network inspect ofrc_ollama >/dev/null 2>&1 || { echo "Missing ofrc_ollama network. Start deploy/ollama on the VPS first."; exit 1; }
 docker compose -f docker-compose.staging.yml build api migrate frontend
-docker compose -f docker-compose.staging.yml --profile tools run --rm migrate
+docker compose -f docker-compose.staging.yml --profile tools run -T --rm migrate
 docker compose -f docker-compose.staging.yml up -d
 curl -fsS -H "Host: chat-staging.ofrc-admin.com" -o /dev/null --connect-timeout 5 "http://127.0.0.1:8089/"
 curl -fsS -H "Host: api-chat-staging.ofrc-admin.com" --connect-timeout 5 "http://127.0.0.1:8089/api/health"

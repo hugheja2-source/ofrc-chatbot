@@ -28,10 +28,13 @@ export const config = {
   },
   uploadDir: process.env.UPLOAD_DIR || path.resolve(process.cwd(), 'uploads'),
   uploadMaxBytes: Number(process.env.UPLOAD_MAX_BYTES || 25 * 1024 * 1024),
-  geminiApiKey: process.env.GEMINI_API_KEY || '',
-  // Prefer Flash-Lite for higher free-tier headroom than gemini-3.8-flash (20 RPD).
-  geminiChatModel: process.env.GEMINI_CHAT_MODEL || 'gemini-3.1-flash-lite',
-  geminiEmbedModel: process.env.GEMINI_EMBED_MODEL || 'gemini-embedding-001',
+  // Keep in sync with src/release.ts when cutting a release.
+  appRelease: '1.1.0',
+  chatModelName: 'Gemma 3 4B',
+  ollamaBaseUrl: (process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434').replace(/\/$/, ''),
+  ollamaChatModel: process.env.OLLAMA_CHAT_MODEL || 'gemma3:4b',
+  ollamaEmbedModel: process.env.OLLAMA_EMBED_MODEL || 'nomic-embed-text',
+  ollamaNumCtx: Number(process.env.OLLAMA_NUM_CTX || 8192),
   sessionTtlDays: Number(process.env.SESSION_TTL_DAYS || 30),
   bcryptRounds: Number(process.env.BCRYPT_ROUNDS || 12),
   recoveryUsername: process.env.RECOVERY_USERNAME || 'recovery',
@@ -41,8 +44,11 @@ export const config = {
 };
 
 export function assertRuntimeConfig(): void {
-  if (config.nodeEnv === 'production' && !config.geminiApiKey) {
-    console.warn('WARNING: GEMINI_API_KEY is not set; chat and ingest will fail.');
+  console.log(
+    `LLM: Ollama ${config.chatModelName} (${config.ollamaChatModel}) via ${config.ollamaBaseUrl}; embeddings ${config.ollamaEmbedModel}`
+  );
+  if (!config.ollamaBaseUrl) {
+    console.warn('WARNING: OLLAMA_BASE_URL is empty; chat and ingest will fail.');
   }
   if (!config.recoveryPassword && config.nodeEnv !== 'test') {
     console.warn(

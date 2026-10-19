@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { query } from '../db/pool';
 import { chunkText } from './chunking';
-import { embedText, extractTopicsAndFacts } from './gemini';
+import { embedText, extractTopicsAndFacts } from './ollama';
 
 // Avoid pdf-parse package root side effects; use the library entry directly.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -57,7 +57,7 @@ export async function ingestDocument(documentId: number): Promise<void> {
 
     const chunks = chunkText(text);
     for (let i = 0; i < chunks.length; i++) {
-      const embedding = await embedText(chunks[i]);
+      const embedding = await embedText(chunks[i], 'document');
       await query(
         `INSERT INTO chunks (document_id, content, chunk_index, embedding)
          VALUES ($1, $2, $3, $4::vector)`,
@@ -110,7 +110,7 @@ export async function ingestDocument(documentId: number): Promise<void> {
 }
 
 export async function searchChunks(question: string, limit = 6) {
-  const embedding = await embedText(question);
+  const embedding = await embedText(question, 'query');
   const result = await query<{
     id: number;
     content: string;
