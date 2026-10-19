@@ -6,4 +6,4 @@ export const CHAT_MODEL_VERSION = 'gemma3:1b';
 export const EMBED_MODEL_NAME = 'nomic-embed-text';
 export const EMBED_MODEL_VERSION = 'nomic-embed-text';
 
-export const POWERED_BY = `powered by ${CHAT_MODEL_NAME} (${CHAT_MODEL_VERSION})`;
+export const POWERED_BY = `powered by ${CHAT_MODEL_NAME}`;

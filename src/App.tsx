@@ -25,8 +25,8 @@ export function App() {
     api
       .health()
       .then((health) => {
-        if (cancelled || !health.chatModelName || !health.chatModel) return;
-        setPoweredBy(`powered by ${health.chatModelName} (${health.chatModel})`);
+        if (cancelled || !health.chatModelName) return;
+        setPoweredBy(`powered by ${health.chatModelName}`);
       })
       .catch(() => undefined);
     return () => {

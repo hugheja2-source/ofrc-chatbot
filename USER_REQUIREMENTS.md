@@ -25,7 +25,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 **Stack:** React + TypeScript + Vite (frontend); Express + TypeScript (API); PostgreSQL + `pgvector` (host DB); Ollama on the VPS (chat + embeddings); Docker Compose + Nginx aligned with Member Portal.
 
-**Current release:** 1.1.13. The header shows `Release 1.1.13` and `powered by Gemma 3 1B (gemma3:1b)` as plain text for everyone. That line is not a link. Release notes are admin-only (`/admin/release-notes`).
+**Current release:** 1.1.13. The header shows `Release 1.1.13` and `powered by Gemma 3 1B` as plain text for everyone. The Ollama tag is not shown. That line is not a link. Release notes are admin-only (`/admin/release-notes`).
 
 ---
 
@@ -39,7 +39,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 - View last five questions in a sidebar (this browser tab only).
 - Copy assistant responses to the clipboard.
 - Start a new chat session.
-- See the release number and “powered by” the chat model name and version in the site header as plain text, with no link to release notes.
+- See the release number and “powered by” the chat model’s primary name in the site header as plain text, with no link to release notes. The technical model id is not shown.
 
 ### 2.2 Admin
 
@@ -67,7 +67,8 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 1. Ask me about OFRC bylaws, camping, cabins, reservations, or event sites. I only use information shared by the club to answer questions in this chat.
 2. Contact lines (each on its own line, with dividers):
-   - Contact the OFRC Assistant at ofrcassistant@outlook.com with any questions or for any support.
+   - See OFRCNews.com for documents referenced here. (OFRCNews.com links to https://ofrcnews.com)
+   - Direct questions or any requests for support to ofrcassistant@outlook.com.
    - For OFRC after-hours emergencies, call 707-909-0700.
    - For life-threatening emergencies, call 911. (**2× font size, red**)
 
@@ -78,6 +79,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 - When answers use documents, include **reference file name(s)** in the response (and/or a References section).
 - Rate-limited public chat endpoint so the shared VPS stays responsive while the local model is answering.
 - **Copy** control on each assistant reply (copies answer + references when applicable).
+- Each assistant reply shows **First word** (time until the first token) and **Finished** (time until the reply is complete). Finished sits immediately left of Copy. These times are not copied with the answer.
 - **New chat** button: fixed size; not stretched by the instruction/contact column.
 
 ### 3.3 Recent questions sidebar
@@ -191,5 +193,6 @@ Chosen for the Hostinger KVM 2 (2 vCPU, 8 GB RAM) that also runs the member port
 | 2026-10-19 | Release 1.1.11: header release number is plain text for everyone, with no link to release notes. |
 | 2026-10-19 | Release 1.1.12: keep Gemma and embeddings loaded, shorter prompts (3 chunks, 4096 context), stream chat tokens. |
 | 2026-10-19 | Release 1.1.13: chat model switched to Gemma 3 1B (`gemma3:1b`) so CPU answers start sooner. Embeddings stay `nomic-embed-text`. |
+| 2026-10-19 | Ask page shows time to first word and time until the reply finishes, to the left of Copy. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*

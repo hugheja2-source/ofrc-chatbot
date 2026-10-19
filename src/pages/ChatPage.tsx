@@ -6,6 +6,8 @@ type Msg = {
   role: 'user' | 'assistant';
   content: string;
   sources?: string[];
+  firstWordMs?: number;
+  finishedMs?: number;
 };
 
 type RecentQuestion = {
@@ -14,6 +16,8 @@ type RecentQuestion = {
   answer?: string;
   sources?: string[];
   askedAt: number;
+  firstWordMs?: number;
+  finishedMs?: number;
 };
 
 const SESSION_KEY = 'ofrc_chat_session';
@@ -57,6 +61,10 @@ function saveRecent(items: RecentQuestion[]) {
 
 function newId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+function formatDuration(ms: number) {
+  return `${(ms / 1000).toFixed(1)}s`;
 }
 
 export function ChatPage() {
@@ -106,33 +114,63 @@ export function ChatPage() {
     setRecentOpen(false);
 
     const assistantId = `${questionId}-a`;
+    const startedAt = performance.now();
+    let firstWordMs: number | undefined;
     try {
       const res = await api.chat(text, sessionId, (token) => {
+        if (firstWordMs === undefined) {
+          firstWordMs = performance.now() - startedAt;
+        }
+        const seenAt = firstWordMs;
         setReceiving(true);
         setMessages((current) => {
           const existing = current.find((msg) => msg.id === assistantId);
           if (!existing) {
-            return [...current, { id: assistantId, role: 'assistant', content: token }];
+            return [
+              ...current,
+              { id: assistantId, role: 'assistant', content: token, firstWordMs: seenAt },
+            ];
           }
           return current.map((msg) =>
-            msg.id === assistantId ? { ...msg, content: msg.content + token } : msg
+            msg.id === assistantId
+              ? { ...msg, content: msg.content + token, firstWordMs: msg.firstWordMs ?? seenAt }
+              : msg
           );
         });
       });
+      const finishedMs = performance.now() - startedAt;
       setSessionId(res.sessionId);
       tabStore?.setItem(SESSION_KEY, res.sessionId);
       const sources = (res.sources || []).map((s) => s.document).filter(Boolean);
-      setMessages((current) =>
-        current.map((msg) =>
-          msg.id === assistantId ? { ...msg, content: res.answer, sources } : msg
-        )
-      );
+      setMessages((current) => {
+        const existing = current.find((msg) => msg.id === assistantId);
+        if (!existing) {
+          return [
+            ...current,
+            {
+              id: assistantId,
+              role: 'assistant',
+              content: res.answer,
+              sources,
+              firstWordMs,
+              finishedMs,
+            },
+          ];
+        }
+        return current.map((msg) =>
+          msg.id === assistantId
+            ? { ...msg, content: res.answer, sources, firstWordMs, finishedMs }
+            : msg
+        );
+      });
       upsertRecent({
         id: questionId,
         question: text,
         answer: res.answer,
         sources,
         askedAt: Date.now(),
+        firstWordMs,
+        finishedMs,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Chat failed');
@@ -176,6 +214,8 @@ export function ChatPage() {
         role: 'assistant',
         content: item.answer,
         sources: item.sources,
+        firstWordMs: item.firstWordMs,
+        finishedMs: item.finishedMs,
       });
     }
     setMessages(restored);
@@ -225,10 +265,17 @@ export function ChatPage() {
           </div>
         </div>
 
-        <div className="chat-contact" aria-label="Contact and emergency information">
+        <div className="chat-contact" aria-label="Documents, contact, and emergency information">
           <p className="chat-contact-line">
-            Direct questions or for support, contact{' '}
-            <a href="mailto:ofrcassistant@outlook.com">ofrcassistant@outlook.com</a>
+            See{' '}
+            <a href="https://ofrcnews.com" target="_blank" rel="noopener noreferrer">
+              OFRCNews.com
+            </a>{' '}
+            for documents referenced here.
+          </p>
+          <p className="chat-contact-line">
+            Direct questions or any requests for support to{' '}
+            <a href="mailto:ofrcassistant@outlook.com">ofrcassistant@outlook.com</a>.
           </p>
           <p className="chat-contact-line">
             For after-hours emergencies (non life-threatening), contact{' '}
@@ -274,14 +321,22 @@ export function ChatPage() {
                 )}
               {m.role === 'assistant' && (
                 <div className="chat-bubble-actions">
-                  <button
-                    type="button"
-                    className="chat-copy-btn"
-                    onClick={() => copyResponse(m)}
-                    aria-label="Copy response"
-                  >
-                    {copiedId === m.id ? 'Copied' : 'Copy'}
-                  </button>
+                  {m.firstWordMs != null && (
+                    <span className="chat-timing">First word {formatDuration(m.firstWordMs)}</span>
+                  )}
+                  <span className="chat-timing-finished">
+                    {m.finishedMs != null && (
+                      <span className="chat-timing">Finished {formatDuration(m.finishedMs)}</span>
+                    )}
+                    <button
+                      type="button"
+                      className="chat-copy-btn"
+                      onClick={() => copyResponse(m)}
+                      aria-label="Copy response"
+                    >
+                      {copiedId === m.id ? 'Copied' : 'Copy'}
+                    </button>
+                  </span>
                 </div>
               )}
             </div>

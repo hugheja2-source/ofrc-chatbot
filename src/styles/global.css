@@ -336,7 +336,21 @@ a:hover {
 .chat-bubble-actions {
   display: flex;
   justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.55rem 0.75rem;
   margin-top: 0.55rem;
+}
+
+.chat-timing-finished {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.chat-timing {
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 .chat-copy-btn {
