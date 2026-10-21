@@ -80,29 +80,12 @@ export function ChatPage() {
     localStorage.removeItem(SESSION_KEY); // legacy cross-tab session
     return tabStore?.getItem(SESSION_KEY) ?? null;
   });
-  const [lede, setLede] = useState(
-    'Ask about the club, including contact information and meeting dates. Answers come only from club documents shared for this chat.'
-  );
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, busy]);
-
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .topicIntro()
-      .then((data) => {
-        const intro = data.intro?.trim();
-        if (!cancelled && intro) setLede(intro);
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   function upsertRecent(entry: RecentQuestion) {
     setRecent((prev) => {
@@ -251,7 +234,16 @@ export function ChatPage() {
     <main className="page chat-layout">
       <section className="panel chat-main">
         <div className="chat-header">
-          <h1 className="chat-title">How can we help?</h1>
+          <div className="chat-intro">
+            <h1 className="chat-title">How can we help?</h1>
+            <p className="chat-lede">
+              Ask about camping and cabins, events, meetings, reservations, contact information and
+              meeting or work weekend dates, in addition to other topics.
+            </p>
+            <p className="chat-lede">
+              All answers are generated from documents the club has shared with this chat.
+            </p>
+          </div>
           <div className="chat-toolbar">
             <button type="button" className="btn secondary" onClick={newChat}>
               New chat
@@ -321,7 +313,6 @@ export function ChatPage() {
       <aside className="chat-side">
         <section className="panel chat-about" aria-label="About this chatbot">
           <h2 className="chat-sidebar-title">About this chatbot</h2>
-          <p className="chat-lede">{lede}</p>
           <div className="chat-contact">
             <p className="chat-contact-line">
               See{' '}

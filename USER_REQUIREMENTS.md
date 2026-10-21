@@ -66,12 +66,12 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 The site header says **Ask OFRC**. The chat page does not repeat that title.
 
-The chat column is headed **How can we help?**
+The chat column is headed **How can we help?** Directly under that heading:
 
-On the right, two boxes are stacked. The top box is **About this chatbot**. It holds:
+1. Ask about camping and cabins, events, meetings, reservations, contact information and meeting or work weekend dates, in addition to other topics.
+2. All answers are generated from documents the club has shared with this chat.
 
-1. A short introduction, at most two sentences. The first sentence summarizes the topics currently in the library (category names, plus up to one short example from each of a few categories — not every topic) and always includes contact information and meeting dates. The second sentence says answers come only from club documents shared for this chat. The text is rebuilt from the topics list on each visit, so it changes when topics are added or removed. If there are no topics yet, it says to ask about the club, including contact information and meeting dates, then the same second sentence.
-2. Contact lines (each on its own line):
+On the right, two boxes are stacked. The top box is **About this chatbot**. It holds the contact lines (each on its own line):
    - See OFRCNews.com for documents referenced here. (OFRCNews.com links to https://ofrcnews.com)
    - Direct questions or any requests for support to ofrcassistant@outlook.com.
    - For after-hours emergencies (non life-threatening), contact 707-909-0700.
@@ -218,6 +218,7 @@ The Ollama container is shared (`ofrc-ollama` on `ofrc_ollama`, bound to `127.0.
 | 2026-10-21 | Release 1.1.16: the chat page leads with “How can we help?” and does not repeat Ask OFRC. The ask-about line includes contact information and meeting dates. Ingest keeps contact lists and date schedules together, and search can match a named contact. Documents must be trained again. |
 | 2026-10-21 | A year that wraps onto the next line of the same table cell stays with that date. |
 | 2026-10-21 | The ask page right column has two stacked boxes: About this chatbot, then Recent questions. |
+| 2026-10-21 | The lines under How can we help? name camping, cabins, events, meetings, reservations, contact information, and meeting or work weekend dates, and say answers come from documents the club shared with this chat. |
 | 2026-10-21 | The staging/production split is removed. The single live app is Ask OFRC at https://ask.ofrc-admin.com with the API at https://api-ask.ofrc-admin.com. The site header reads Ask OFRC. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*
