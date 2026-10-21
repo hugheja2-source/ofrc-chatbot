@@ -82,7 +82,7 @@ export function ChatPage() {
     return tabStore?.getItem(SESSION_KEY) ?? null;
   });
   const [lede, setLede] = useState(
-    'Answers come only from club documents shared for this chat.'
+    'Ask about the club, including contact information and meeting dates. Answers come only from club documents shared for this chat.'
   );
   const bottomRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -256,8 +256,28 @@ export function ChatPage() {
       <section className="panel chat-main">
         <div className="chat-header">
           <div className="chat-intro">
-            <h1 className="chat-title">Ask OFRC</h1>
+            <h1 className="chat-title">How can we help?</h1>
             <p className="chat-lede">{lede}</p>
+            <div className="chat-contact" aria-label="Documents, contact, and emergency information">
+              <p className="chat-contact-line">
+                See{' '}
+                <a href="https://ofrcnews.com" target="_blank" rel="noopener noreferrer">
+                  OFRCNews.com
+                </a>{' '}
+                for documents referenced here.
+              </p>
+              <p className="chat-contact-line">
+                Direct questions or any requests for support to{' '}
+                <a href="mailto:ofrcassistant@outlook.com">ofrcassistant@outlook.com</a>.
+              </p>
+              <p className="chat-contact-line">
+                For after-hours emergencies (non life-threatening), contact{' '}
+                <a href="tel:7079090700">707-909-0700</a>
+              </p>
+              <p className="chat-contact-line chat-contact-911">
+                In the event of a life-threatening emergency, call <a href="tel:911">911</a>.
+              </p>
+            </div>
           </div>
           <div className="chat-toolbar">
             <button
@@ -275,37 +295,7 @@ export function ChatPage() {
           </div>
         </div>
 
-        <div className="chat-contact" aria-label="Documents, contact, and emergency information">
-          <p className="chat-contact-line">
-            See{' '}
-            <a href="https://ofrcnews.com" target="_blank" rel="noopener noreferrer">
-              OFRCNews.com
-            </a>{' '}
-            for documents referenced here.
-          </p>
-          <p className="chat-contact-line">
-            Direct questions or any requests for support to{' '}
-            <a href="mailto:ofrcassistant@outlook.com">ofrcassistant@outlook.com</a>.
-          </p>
-          <p className="chat-contact-line">
-            For after-hours emergencies (non life-threatening), contact{' '}
-            <a href="tel:7079090700">707-909-0700</a>
-          </p>
-          <p className="chat-contact-line chat-contact-911">
-            In the event of a life-threatening emergency, call <a href="tel:911">911</a>.
-          </p>
-        </div>
-
         <div className="chat-thread">
-          {messages.length === 0 && !busy && (
-            <div className="chat-empty">
-              <p className="chat-empty-title">How can we help?</p>
-              <p className="muted">
-                Try something like “What are the cabin reservation rules?” or “How do I check in
-                when I arrive?”
-              </p>
-            </div>
-          )}
           {messages.map((m) => (
             <div
               key={m.id}

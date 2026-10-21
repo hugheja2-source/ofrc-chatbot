@@ -52,13 +52,12 @@ chatRouter.post('/', chatLimiter, async (req, res, next) => {
 
     let chunks: Awaited<ReturnType<typeof searchChunks>> = [];
     try {
-      chunks = await searchChunks(message, 4);
+      chunks = await searchChunks(message, 3);
     } catch (err) {
       console.error('Retrieval failed:', err);
     }
 
-    const strongChunks = chunks.filter((c) => Number(c.distance) < 0.55);
-    const usedChunks = (strongChunks.length > 0 ? strongChunks : chunks).slice(0, 3);
+    const usedChunks = chunks.slice(0, 3);
     const contextChunks = usedChunks.map((c) => ({
       content: c.content,
       documentFilename: c.original_filename,

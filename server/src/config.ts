@@ -29,7 +29,7 @@ export const config = {
   uploadDir: process.env.UPLOAD_DIR || path.resolve(process.cwd(), 'uploads'),
   uploadMaxBytes: Number(process.env.UPLOAD_MAX_BYTES || 25 * 1024 * 1024),
   // Keep in sync with src/release.ts when cutting a release.
-  appRelease: '1.1.15',
+  appRelease: '1.1.16',
   chatModelName: 'GPT-OSS 120B',
   groqApiKey: process.env.GROQ_API_KEY || '',
   groqChatModel:

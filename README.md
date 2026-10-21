@@ -2,7 +2,7 @@
 
 Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask questions; admins upload PDFs or import public OFRCNews.com pages and train a RAG knowledge base. Answers stay grounded in that trained material. Chat does not search the web while answering. Chat runs on Groq. Embeddings run on Ollama on the club VPS.
 
-**Release 1.1.15** — powered by GPT-OSS 120B (`openai/gpt-oss-120b`) on Groq. Embeddings: `nomic-embed-text`. Chat tokens stream. Existing documents do not need re-training. Admins can import public pages, posts, and PDFs from [OFRCNews.com](https://ofrcnews.com) into the knowledge base. The header release number is plain text. Release notes are admin-only.
+**Release 1.1.16** — powered by GPT-OSS 120B (`openai/gpt-oss-120b`) on Groq. Embeddings: `nomic-embed-text`. The chat page leads with “How can we help?” Contact lists and date schedules stay together during training, so documents trained before this release need to be trained again. The header release number is plain text. Release notes are admin-only.
 
 ## Stack
 

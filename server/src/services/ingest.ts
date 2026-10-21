@@ -4,12 +4,15 @@ import { query } from '../db/pool';
 import { chunkText } from './chunking';
 import { extractTopicsAndFacts } from './groq';
 import { embedText } from './ollama';
+import { renderPdfPage } from './pdfText';
+import { likePattern, queryTerms, rankChunks } from './retrieval';
 import { saveOfrcNewsSource } from './scrape';
 
 // Avoid pdf-parse package root side effects; use the library entry directly.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require('pdf-parse/lib/pdf-parse.js') as (
-  data: Buffer
+  data: Buffer,
+  options?: { pagerender?: (pageData: Parameters<typeof renderPdfPage>[0]) => Promise<string> }
 ) => Promise<{ text: string; numpages: number }>;
 
 function toVectorLiteral(values: number[]): string {
@@ -18,7 +21,7 @@ function toVectorLiteral(values: number[]): string {
 
 export async function extractPdfText(filePath: string): Promise<{ text: string; pages: number }> {
   const buffer = await fs.readFile(filePath);
-  const parsed = await pdfParse(buffer);
+  const parsed = await pdfParse(buffer, { pagerender: renderPdfPage });
   return { text: parsed.text || '', pages: parsed.numpages || 0 };
 }
 
@@ -137,23 +140,40 @@ export async function ingestDocument(documentId: number): Promise<void> {
   }
 }
 
-export async function searchChunks(question: string, limit = 6) {
+export async function searchChunks(question: string, limit = 3) {
   const embedding = await embedText(question, 'query');
-  const result = await query<{
+  const vector = toVectorLiteral(embedding);
+  const terms = queryTerms(question);
+  const patterns = terms.map(likePattern);
+  const select = `SELECT c.id, c.content, c.document_id, d.original_filename,
+            (c.embedding <=> $1::vector) AS distance
+     FROM chunks c
+     JOIN documents d ON d.id = c.document_id
+     WHERE d.status = 'ready' AND c.embedding IS NOT NULL`;
+  const vectorHits = await query<{
     id: number;
     content: string;
     document_id: number;
     original_filename: string;
     distance: number;
-  }>(
-    `SELECT c.id, c.content, c.document_id, d.original_filename,
-            (c.embedding <=> $1::vector) AS distance
-     FROM chunks c
-     JOIN documents d ON d.id = c.document_id
-     WHERE d.status = 'ready' AND c.embedding IS NOT NULL
-     ORDER BY c.embedding <=> $1::vector
-     LIMIT $2`,
-    [toVectorLiteral(embedding), limit]
-  );
-  return result.rows;
+  }>(`${select} ORDER BY c.embedding <=> $1::vector LIMIT $2`, [vector, Math.max(limit, 8)]);
+
+  let lexicalHits: typeof vectorHits.rows = [];
+  if (patterns.length) {
+    const found = await query<{
+      id: number;
+      content: string;
+      document_id: number;
+      original_filename: string;
+      distance: number;
+    }>(
+      `${select} AND c.content ILIKE ANY($2::text[])
+       ORDER BY c.embedding <=> $1::vector
+       LIMIT $3`,
+      [vector, patterns, Math.max(limit, 8)]
+    );
+    lexicalHits = found.rows;
+  }
+
+  return rankChunks([...vectorHits.rows, ...lexicalHits], terms, limit);
 }

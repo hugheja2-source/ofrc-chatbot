@@ -24,7 +24,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 **Stack:** React + TypeScript + Vite (frontend); Express + TypeScript (API); PostgreSQL + `pgvector` (host DB); Groq GPT-OSS 120B (chat and topic extraction); Ollama on the VPS (embeddings); Docker Compose + Nginx aligned with Member Portal.
 
-**Current release:** 1.1.15. The header shows `Release 1.1.15` and `powered by GPT-OSS 120B` as plain text for everyone. The Groq model id is not shown. That line is not a link. Release notes are admin-only (`/admin/release-notes`).
+**Current release:** 1.1.16. The header shows `Release 1.1.16` and `powered by GPT-OSS 120B` as plain text for everyone. The Groq model id is not shown. That line is not a link. Release notes are admin-only (`/admin/release-notes`).
 
 ---
 
@@ -62,14 +62,18 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 ## 3. Public chat requirements
 
-### 3.1 Persistent instructions (always visible under “Ask OFRC”)
+### 3.1 Persistent instructions
 
-1. A short introduction under “Ask OFRC,” at most two sentences. The first sentence summarizes the topics currently in the library (category names, plus up to one short example from each of a few categories — not every topic). The second sentence says answers come only from club documents shared for this chat. The text is rebuilt from the topics list on each visit, so it changes when topics are added or removed. If there are no topics yet, it says to ask about the club, then the same second sentence.
-2. Contact lines (each on its own line, with dividers):
+The site header says **Ask OFRC**. The chat page does not repeat that title.
+
+Under the heading **How can we help?**:
+
+1. A short introduction, at most two sentences. The first sentence summarizes the topics currently in the library (category names, plus up to one short example from each of a few categories — not every topic) and always includes contact information and meeting dates. The second sentence says answers come only from club documents shared for this chat. The text is rebuilt from the topics list on each visit, so it changes when topics are added or removed. If there are no topics yet, it says to ask about the club, including contact information and meeting dates, then the same second sentence.
+2. Contact lines (each on its own line):
    - See OFRCNews.com for documents referenced here. (OFRCNews.com links to https://ofrcnews.com)
    - Direct questions or any requests for support to ofrcassistant@outlook.com.
-   - For OFRC after-hours emergencies, call 707-909-0700.
-   - For life-threatening emergencies, call 911. (**2× font size, red**)
+   - For after-hours emergencies (non life-threatening), contact 707-909-0700.
+   - In the event of a life-threatening emergency, call 911. (red, larger type)
 
 ### 3.2 Chat behavior
 
@@ -143,7 +147,7 @@ A greenfield web application that answers questions about OFRC using **only** cl
 | Campground Rules | `campground-rules.pdf` |
 | Cabin Rules | `cabin-rules.pdf` |
 
-Chat and topic extraction run on [Groq](https://groq.com) with GPT-OSS 120B. Llama 4 Scout (`meta-llama/llama-4-scout-17b-16e-instruct`) was shut down for Groq Developer accounts on July 17, 2026, so this is Groq’s recommended replacement that the club key can call. Embeddings stay on the club VPS with [Ollama](https://ollama.com). The Groq API key lives only in gitignored env files. The Groq console spend limit is $10. Chat temperature is 0 and reasoning effort is low. Each answer still uses at most 3 retrieved chunks. Existing `nomic-embed-text` vectors stay valid, so this release does not require a re-train. Topic extraction still reads the start of long documents. Switching the embedding model would require re-training every document.
+Chat and topic extraction run on [Groq](https://groq.com) with GPT-OSS 120B. Llama 4 Scout (`meta-llama/llama-4-scout-17b-16e-instruct`) was shut down for Groq Developer accounts on July 17, 2026, so this is Groq’s recommended replacement that the club key can call. Embeddings stay on the club VPS with [Ollama](https://ollama.com). The Groq API key lives only in gitignored env files. The Groq console spend limit is $10. Chat temperature is 0 and reasoning effort is low. Each answer still uses at most 3 retrieved chunks. The chat is told today’s date so “next” means the earliest listed date that is still today or later. Ingest keeps a contact list or a date schedule in one chunk, and a question that names a role or phone number can match that chunk directly. Topic extraction reads the beginning and the end of a long document. Documents trained before release 1.1.16 need to be trained again so those chunks replace the old ones. Switching the embedding model would also require re-training every document.
 
 | Role | Model | Id | Notes |
 |------|--------|----|--------|
@@ -207,6 +211,7 @@ The Ollama container is shared (`ofrc-ollama` on `ofrc_ollama`, bound to `127.0.
 | 2026-10-19 | Chat replies no longer add a separate References line. Source names stay in the answer when the model includes them. |
 | 2026-10-19 | Imported OFRCNews pages keep each link name together with its web address. |
 | 2026-10-21 | Release 1.1.15: chat and topic extraction moved to Groq. Llama 4 Scout is shut down on the Developer plan, so chat uses GPT-OSS 120B (`openai/gpt-oss-120b`). Embeddings stay `nomic-embed-text` on the VPS. Existing documents do not need re-training. Each answer still uses at most 3 chunks. |
+| 2026-10-21 | Release 1.1.16: the chat page leads with “How can we help?” and does not repeat Ask OFRC. The ask-about line includes contact information and meeting dates. Ingest keeps contact lists and date schedules together, and search can match a named contact. Documents must be trained again. |
 | 2026-10-21 | The staging/production split is removed. The single live app is Ask OFRC at https://ask.ofrc-admin.com with the API at https://api-ask.ofrc-admin.com. The site header reads Ask OFRC. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*

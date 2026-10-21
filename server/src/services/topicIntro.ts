@@ -2,6 +2,7 @@ import { query } from '../db/pool';
 
 const GROUNDING = 'Answers come only from club documents shared for this chat.';
 const MAX_ASK_LENGTH = 220;
+const ASK_EXTRAS = ['contact information', 'meeting dates'];
 
 export type TopicGroup = {
   name: string;
@@ -17,22 +18,22 @@ export function composeTopicIntro(groups: TopicGroup[]): string {
     .filter((group) => group.name && group.titles.length > 0);
 
   if (!named.length) {
-    return `Ask about the club. ${GROUNDING}`;
+    return `${askAbout(['the club'], [])} ${GROUNDING}`;
   }
 
   const categories = named.map((group) => group.name.toLowerCase());
   const examples = pickExamples(named);
-  const categoryPhrase = joinList(categories);
-  let ask = examples.length
-    ? `Ask about ${categoryPhrase}, including ${joinList(examples)}.`
-    : `Ask about ${categoryPhrase}.`;
-  if (ask.length > MAX_ASK_LENGTH) {
-    ask = `Ask about ${categoryPhrase}.`;
-  }
-  if (ask.length > MAX_ASK_LENGTH) {
-    ask = `Ask about ${joinList(categories.slice(0, 4))}.`;
-  }
-  return `${ask} ${GROUNDING}`;
+  return `${askAbout(categories, examples)} ${GROUNDING}`;
+}
+
+function askAbout(categories: string[], examples: string[]): string {
+  const withExamples = `Ask about ${joinList(categories)}, including ${joinList([...examples, ...ASK_EXTRAS])}.`;
+  if (examples.length && withExamples.length <= MAX_ASK_LENGTH) return withExamples;
+  const withExtras = `Ask about ${joinList(categories)}, including ${joinList(ASK_EXTRAS)}.`;
+  if (withExtras.length <= MAX_ASK_LENGTH) return withExtras;
+  const shorter = `Ask about ${joinList(categories.slice(0, 3))}, including ${joinList(ASK_EXTRAS)}.`;
+  if (shorter.length <= MAX_ASK_LENGTH) return shorter;
+  return `Ask about the club, including ${joinList(ASK_EXTRAS)}.`;
 }
 
 export async function loadTopicIntro(): Promise<string> {

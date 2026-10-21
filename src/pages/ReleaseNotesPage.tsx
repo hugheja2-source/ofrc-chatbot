@@ -14,64 +14,32 @@ export function ReleaseNotesPage() {
         <p className="muted">October 21, 2026 · {POWERED_BY}</p>
 
         <section>
-          <h2>AI model</h2>
+          <h2>Ask page</h2>
           <p>
-            Chat answers now come from GPT-OSS 120B on Groq. Llama 4 Scout is no longer
-            available on the Groq Developer plan, so this is the replacement Groq recommends.
-            Document search still uses the embedding model on the club VPS. Existing documents
-            do not need to be re-trained for this release.
+            The site header still says Ask OFRC. The chat page no longer repeats that title.
+            The page opens with “How can we help?”, then a short line about what to ask,
+            including contact information and meeting dates, then the OFRCNews.com and
+            emergency lines.
+          </p>
+        </section>
+
+        <section>
+          <h2>Dates and contacts</h2>
+          <p>
+            Training now keeps a contact list or a meeting-date list in one piece, and it
+            puts ordinals such as “7th” back on the date. A question that names a role, such
+            as secretary, can match the chunk that has the phone number and email. The chat
+            is told today’s date, so “next meeting” means the earliest listed date that is
+            still today or later.
           </p>
           <ul>
             <li>
               <strong>Chat model:</strong> {CHAT_MODEL_NAME}, Groq id{' '}
-              <code>{CHAT_MODEL_VERSION}</code>. Answers stream as they are written.
+              <code>{CHAT_MODEL_VERSION}</code>.
             </li>
             <li>
-              <strong>Embeddings:</strong> <code>{EMBED_MODEL_NAME}</code> (768 dimensions) on
-              the club VPS. Document search still uses the existing vector column size.
-            </li>
-          </ul>
-          <p>
-            The VPS is a Hostinger KVM 2 with 2 CPUs and 8 GB of RAM, and it already runs the
-            member portal and other club apps. Only the embedding model stays loaded there.
-            Each answer still uses at most 3 document chunks.
-          </p>
-        </section>
-
-        <section>
-          <h2>OFRCNews.com</h2>
-          <p>
-            Admins can import public pages, posts, and PDFs from OFRCNews.com on the Documents
-            page. Imported pages are trained like other club documents. The chat does not browse
-            the web while answering. Pages that require a member login are not imported, and shop,
-            cart, and checkout pages are skipped.
-          </p>
-        </section>
-
-        <section>
-          <h2>What changed</h2>
-          <ul>
-            <li>
-              Documents can be loaded from public OFRCNews.com pages, posts, and PDFs, then trained
-              for chat.
-            </li>
-            <li>Public chat and topic extraction call GPT-OSS 120B on Groq.</li>
-            <li>
-              Embeddings stay on the VPS with <code>{EMBED_MODEL_NAME}</code>. Existing
-              documents do not need another training pass.
-            </li>
-            <li>
-              Each answer still uses at most 3 document chunks. Reply text appears as it is
-              written.
-            </li>
-            <li>
-              Everyone sees Release {APP_RELEASE} and “{POWERED_BY}” as plain text in the
-              header. That line is not a link. These notes are only available to signed-in
-              admins.
-            </li>
-            <li>
-              Topic extraction still reads the start of long documents. If that step fails, the
-              document can still become ready and chat can still search its chunks.
+              <strong>Embeddings:</strong> <code>{EMBED_MODEL_NAME}</code> on the club VPS.
+              Each answer still uses at most 3 document chunks.
             </li>
           </ul>
         </section>
@@ -79,10 +47,9 @@ export function ReleaseNotesPage() {
         <section>
           <h2>Admin action</h2>
           <p>
-            To use OFRCNews.com in answers, open{' '}
-            <Link to="/admin/documents">Admin → Documents</Link>, load the site, and import the
-            pages you want. Existing PDFs do not need another training pass. Search still uses{' '}
-            <code>{EMBED_MODEL_NAME}</code>.
+            Open <Link to="/admin/documents">Admin → Documents</Link> and train each document
+            again. Answers keep using the old chunks until that training finishes. Search still
+            uses <code>{EMBED_MODEL_NAME}</code>.
           </p>
         </section>
       </article>

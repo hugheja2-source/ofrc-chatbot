@@ -23,7 +23,8 @@ Do not use general world knowledge or the public internet.
 If the context is insufficient, say you do not have that information in the club documents.
 If the question is ambiguous, ask ONE short clarifying question instead of guessing.
 Be concise, friendly, and practical.
-Never invent rules, fees, dates, or policies not present in the context.
+Never invent rules, fees, dates, phone numbers, email addresses, or policies not present in the context.
+When several dates are listed, read the whole list. For what is next or upcoming, choose the earliest date that is still on or after today. Do not skip earlier dates in that list.
 When your answer is based on document excerpts, name the source exactly as it appears in the context.
 Do not invent or shorten source names. A source may be an uploaded PDF or an imported OFRCNews.com page.`;
 
@@ -68,7 +69,17 @@ function buildChatMessages(params: {
           .join('\n\n')
       : '(No matching club document excerpts were found.)';
 
-  const prompt = `Club document context:
+  const today = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(new Date());
+
+  const prompt = `Today is ${today}.
+
+Club document context:
 ${contextBlock}
 
 Current user question:
@@ -194,6 +205,14 @@ export async function* streamGroundedReply(params: {
   }
 }
 
+function textForExtraction(documentText: string): string {
+  const limit = 10_000;
+  if (documentText.length <= limit) return documentText;
+  const tail = documentText.slice(-4_000);
+  const head = documentText.slice(0, limit - tail.length - 30);
+  return `${head}\n\n[End of the document]\n\n${tail}`;
+}
+
 function parseTopics(raw: string): ExtractedTopic[] {
   const fenced = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
   const start = fenced.indexOf('{');
@@ -207,7 +226,7 @@ export async function extractTopicsAndFacts(
   categoryName: string,
   documentText: string
 ): Promise<ExtractedTopic[]> {
-  const truncated = documentText.slice(0, 8_000);
+  const truncated = textForExtraction(documentText);
   const prompt = `Extract structured knowledge from this OFRC club document in category "${categoryName}".
 Return JSON only as:
 {
@@ -223,7 +242,8 @@ Rules:
 - 3 to 12 topics
 - Facts must be concrete and grounded in the text
 - No invented information
-- The text may be only the beginning of a longer document
+- Copy dates, phone numbers, and email addresses exactly as written
+- A long document includes its beginning and its end. Schedules and contact lists are often at the end
 
 Document text:
 ${truncated}`;
