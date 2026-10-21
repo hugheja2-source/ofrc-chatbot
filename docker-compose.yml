@@ -3,25 +3,24 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8091:80"
+      - "127.0.0.1:8089:80"
     volumes:
-      - ./Caddyfile.production:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
     depends_on:
       - frontend
       - api
     networks:
-      - chatbot_production
+      - chatbot
 
   frontend:
     build:
       context: .
       dockerfile: Dockerfile
       args:
-        VITE_MODE: production
-        VITE_API_URL: https://api-chat.ofrc-admin.com/api
+        VITE_API_URL: https://api-ask.ofrc-admin.com/api
     restart: unless-stopped
     networks:
-      - chatbot_production
+      - chatbot
 
   api:
     build:
@@ -29,23 +28,21 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     env_file:
-      - ./server/.env.production.docker
+      - ./server/.env.docker
     environment:
       DB_HOST: host.docker.internal
       DB_PORT: "5432"
       PORT: "4100"
       NODE_ENV: production
-      ALLOWED_ORIGINS: https://chat.ofrc-admin.com
+      ALLOWED_ORIGINS: https://ask.ofrc-admin.com
       OLLAMA_BASE_URL: http://ofrc-ollama:11434
-      OLLAMA_CHAT_MODEL: gemma3:1b
       OLLAMA_EMBED_MODEL: nomic-embed-text
-      OLLAMA_NUM_CTX: "4096"
     volumes:
-      - /var/www/ofrc/chatbot/production/uploads:/var/www/ofrc/chatbot/production/uploads
+      - /var/www/ofrc/chatbot/uploads:/var/www/ofrc/chatbot/uploads
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - chatbot_production
+      - chatbot
       - ofrc_ollama
 
   migrate:
@@ -54,20 +51,20 @@ services:
       dockerfile: Dockerfile
     profiles: ["tools"]
     env_file:
-      - ./server/.env.production.docker
+      - ./server/.env.docker
     environment:
       DB_HOST: host.docker.internal
       DB_PORT: "5432"
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
-      - chatbot_production
+      - chatbot
     entrypoint: ["/bin/bash", "-lc"]
     command: ["chmod +x scripts/run-migrations.sh && ./scripts/run-migrations.sh"]
 
 networks:
-  chatbot_production:
-    name: chatbot_production
+  chatbot:
+    name: chatbot
   ofrc_ollama:
     external: true
     name: ofrc_ollama

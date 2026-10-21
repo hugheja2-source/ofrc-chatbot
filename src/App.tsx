@@ -45,7 +45,7 @@ export function App() {
               className="brand-logo"
             />
             <span className="brand-text">
-              OFRC <span>Chat</span>
+              Ask <span>OFRC</span>
             </span>
           </Link>
           <nav>

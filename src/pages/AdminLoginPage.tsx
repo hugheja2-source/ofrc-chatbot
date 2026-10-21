@@ -33,7 +33,7 @@ export function AdminLoginPage() {
     <main className="page" style={{ maxWidth: 420 }}>
       <section className="panel" style={{ padding: '1.5rem' }}>
         <h1 style={{ fontFamily: 'var(--font-display)', marginTop: 0 }}>Admin login</h1>
-        <p className="muted">Manage documents, topics, and training for OFRC Chat.</p>
+        <p className="muted">Manage documents, topics, and training for Ask OFRC.</p>
         <form onSubmit={onSubmit} style={{ display: 'grid', gap: '1rem' }}>
           <label className="field">
             Username

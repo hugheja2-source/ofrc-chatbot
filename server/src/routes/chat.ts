@@ -3,7 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { randomUUID } from 'crypto';
 import { config } from '../config';
 import { query } from '../db/pool';
-import { streamGroundedReply, ChatTurn } from '../services/ollama';
+import { streamGroundedReply, ChatTurn } from '../services/groq';
 import { searchChunks } from '../services/ingest';
 
 export const chatRouter = Router();
@@ -90,7 +90,7 @@ chatRouter.post('/', chatLimiter, async (req, res, next) => {
     ];
     const answer = rawAnswer.replace(/\n+\s*references\s*:\s*[\s\S]*$/i, '').trim();
     if (!answer) {
-      throw new Error('OLLAMA_ERROR: empty chat response');
+      throw new Error('GROQ_ERROR: empty chat response');
     }
 
     await query(
@@ -105,13 +105,22 @@ chatRouter.post('/', chatLimiter, async (req, res, next) => {
     });
     res.end();
     } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    const publicError =
-      message.includes('OLLAMA_UNAVAILABLE') || message.includes('OLLAMA_MODEL_MISSING')
-        ? 'The on-server AI model is unavailable. Please try again in a moment.'
-        : message.includes('OLLAMA_TIMEOUT') || message.includes('AbortError')
+    const message = (err instanceof Error ? err.message : String(err)).replace(
+      /gsk_[A-Za-z0-9]+/g,
+      '[redacted]'
+    );
+    console.error(message);
+    const publicError = message.includes('GROQ_AUTH')
+      ? 'The AI service could not authenticate. Please try again later.'
+      : message.includes('GROQ_RATE_LIMIT')
+        ? 'The AI service is busy. Please wait a moment and try again.'
+        : message.includes('GROQ_TIMEOUT') || message.includes('AbortError')
           ? 'The AI model took too long to answer. Please try a shorter question.'
-          : '';
+          : message.includes('GROQ_UNAVAILABLE')
+            ? 'The AI service is unavailable. Please try again in a moment.'
+            : message.includes('GROQ_ERROR')
+              ? 'Chat failed. Please try again.'
+              : '';
     if (res.headersSent) {
       res.write(
         `event: error\ndata: ${JSON.stringify({
@@ -121,12 +130,20 @@ chatRouter.post('/', chatLimiter, async (req, res, next) => {
       res.end();
       return;
     }
-    if (publicError && (message.includes('OLLAMA_UNAVAILABLE') || message.includes('OLLAMA_MODEL_MISSING'))) {
+    if (publicError && message.includes('GROQ_RATE_LIMIT')) {
+      res.status(429).json({ error: publicError });
+      return;
+    }
+    if (publicError && (message.includes('GROQ_TIMEOUT') || message.includes('AbortError'))) {
+      res.status(504).json({ error: publicError });
+      return;
+    }
+    if (publicError && (message.includes('GROQ_AUTH') || message.includes('GROQ_UNAVAILABLE'))) {
       res.status(503).json({ error: publicError });
       return;
     }
     if (publicError) {
-      res.status(504).json({ error: publicError });
+      res.status(502).json({ error: publicError });
       return;
     }
     next(err);

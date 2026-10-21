@@ -1,23 +1,22 @@
 # OFRC Chatbot
 
-Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask questions; admins upload PDFs or import public OFRCNews.com pages and train a RAG knowledge base. Answers stay grounded in that trained material. Chat does not search the web while answering. Chat and embeddings run on a free Ollama model on the club VPS.
+Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask questions; admins upload PDFs or import public OFRCNews.com pages and train a RAG knowledge base. Answers stay grounded in that trained material. Chat does not search the web while answering. Chat runs on Groq. Embeddings run on Ollama on the club VPS.
 
-**Release 1.1.14** — powered by Gemma 3 1B (`gemma3:1b`). Embeddings: `nomic-embed-text`. Chat tokens stream. Admins can import public pages, posts, and PDFs from [OFRCNews.com](https://ofrcnews.com) into the knowledge base. The header release number is plain text. Release notes are admin-only.
+**Release 1.1.15** — powered by GPT-OSS 120B (`openai/gpt-oss-120b`) on Groq. Embeddings: `nomic-embed-text`. Chat tokens stream. Existing documents do not need re-training. Admins can import public pages, posts, and PDFs from [OFRCNews.com](https://ofrcnews.com) into the knowledge base. The header release number is plain text. Release notes are admin-only.
 
 ## Stack
 
 - Frontend: React + TypeScript + Vite
 - API: Node.js + Express + TypeScript
 - DB: PostgreSQL + `pgvector` on the Hostinger VPS host
-- LLM: Ollama on the VPS (`gemma3:1b` chat, `nomic-embed-text` embeddings)
+- LLM: Groq GPT-OSS 120B for chat and topic extraction; Ollama on the VPS for `nomic-embed-text` embeddings
 - Deploy: Docker Compose + host Nginx/TLS (same pattern as Member Portal)
 
 ## URLs
 
-| Env | App | API |
-|-----|-----|-----|
-| Staging | https://chat-staging.ofrc-admin.com | https://api-chat-staging.ofrc-admin.com |
-| Production | https://chat.ofrc-admin.com | https://api-chat.ofrc-admin.com |
+| App | API |
+|-----|-----|
+| https://ask.ofrc-admin.com | https://api-ask.ofrc-admin.com |
 
 ## Local development
 
@@ -25,8 +24,8 @@ Club-document chatbot for Odd Fellows Recreation Club. Public visitors ask quest
 # Terminal 1 — API
 cd server
 cp .env.example .env
-# Set DB_*, OLLAMA_BASE_URL, RECOVERY_PASSWORD
-# Ollama must be running (local, or SSH tunnel to the VPS port 11434)
+# Set DB_*, OLLAMA_BASE_URL, GROQ_API_KEY, RECOVERY_PASSWORD
+# Ollama must be running for embeddings (local, or SSH tunnel to the VPS port 11434)
 npm install
 bash scripts/run-migrations.sh
 npm run dev
@@ -52,14 +51,14 @@ cd server && npm run seed
 - [USER_REQUIREMENTS.md](USER_REQUIREMENTS.md) — living product requirements (update with each change)
 - [docs/ADMIN_HELP_GUIDE.md](docs/ADMIN_HELP_GUIDE.md) — admin how-to (also under Admin → Help in the app)
 - [docs/ADMIN_RUNBOOK.md](docs/ADMIN_RUNBOOK.md) — ops / recovery / seed
-- [docs/deploy/STAGING_SETUP.md](docs/deploy/STAGING_SETUP.md) — Hostinger staging
+- [docs/deploy/VPS_SETUP.md](docs/deploy/VPS_SETUP.md) — Hostinger VPS setup and deploy
 
-## Deploy (staging)
+## Deploy
 
-See [docs/deploy/STAGING_SETUP.md](docs/deploy/STAGING_SETUP.md) and [docs/ADMIN_RUNBOOK.md](docs/ADMIN_RUNBOOK.md).
+See [docs/deploy/VPS_SETUP.md](docs/deploy/VPS_SETUP.md) and [docs/ADMIN_RUNBOOK.md](docs/ADMIN_RUNBOOK.md).
 
 ```bash
-./deploy-staging.sh
+./deploy.sh
 ```
 
 ## License

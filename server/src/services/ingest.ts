@@ -2,7 +2,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { query } from '../db/pool';
 import { chunkText } from './chunking';
-import { embedText, extractTopicsAndFacts } from './ollama';
+import { extractTopicsAndFacts } from './groq';
+import { embedText } from './ollama';
 import { saveOfrcNewsSource } from './scrape';
 
 // Avoid pdf-parse package root side effects; use the library entry directly.

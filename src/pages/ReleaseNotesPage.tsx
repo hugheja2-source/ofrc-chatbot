@@ -11,33 +11,30 @@ export function ReleaseNotesPage() {
   return (
     <article className="panel release-notes">
         <h1>Release {APP_RELEASE}</h1>
-        <p className="muted">October 19, 2026 · {POWERED_BY}</p>
+        <p className="muted">October 21, 2026 · {POWERED_BY}</p>
 
         <section>
           <h2>AI model</h2>
           <p>
-            Chat answers now come from a free model running on the club VPS with Ollama.
-            Google Gemini is no longer used for chat or embeddings.
+            Chat answers now come from GPT-OSS 120B on Groq. Llama 4 Scout is no longer
+            available on the Groq Developer plan, so this is the replacement Groq recommends.
+            Document search still uses the embedding model on the club VPS. Existing documents
+            do not need to be re-trained for this release.
           </p>
           <ul>
             <li>
-              <strong>Chat model:</strong> {CHAT_MODEL_NAME}, Ollama tag{' '}
-              <code>{CHAT_MODEL_VERSION}</code> (Gemma Terms of Use). This is Google’s Gemma 3
-              1B instruction model, about 806 MB. It replaced Gemma 3 4B so a question can start
-              while the club server is still doing the work on CPU. It is free to run for club
-              questions.
+              <strong>Chat model:</strong> {CHAT_MODEL_NAME}, Groq id{' '}
+              <code>{CHAT_MODEL_VERSION}</code>. Answers stream as they are written.
             </li>
             <li>
-              <strong>Embeddings:</strong> <code>{EMBED_MODEL_NAME}</code> (768 dimensions).
-              Document search still uses the existing vector column size.
+              <strong>Embeddings:</strong> <code>{EMBED_MODEL_NAME}</code> (768 dimensions) on
+              the club VPS. Document search still uses the existing vector column size.
             </li>
           </ul>
           <p>
             The VPS is a Hostinger KVM 2 with 2 CPUs and 8 GB of RAM, and it already runs the
-            member portal and other club apps. Gemma 3 1B and the embedding model stay loaded
-            together. Qwen2.5 3B was not used: the Ollama build is under the Qwen Research
-            License, which allows research and evaluation only. Larger models spend too long
-            reading the prompt on these two CPUs. Ollama on the VPS is version 0.40.6.
+            member portal and other club apps. Only the embedding model stays loaded there.
+            Each answer still uses at most 3 document chunks.
           </p>
         </section>
 
@@ -58,14 +55,14 @@ export function ReleaseNotesPage() {
               Documents can be loaded from public OFRCNews.com pages, posts, and PDFs, then trained
               for chat.
             </li>
-            <li>Public chat and document training call Ollama on the VPS.</li>
+            <li>Public chat and topic extraction call GPT-OSS 120B on Groq.</li>
             <li>
-              Chat uses Gemma 3 1B. Gemma 3 4B stayed loaded, but the first word still waited
-              about 20 seconds while the CPUs read the prompt.
+              Embeddings stay on the VPS with <code>{EMBED_MODEL_NAME}</code>. Existing
+              documents do not need another training pass.
             </li>
             <li>
-              Gemma and the embedding model stay loaded together. Each answer uses at most 3
-              document chunks and a 4096-token context. Reply text appears as it is written.
+              Each answer still uses at most 3 document chunks. Reply text appears as it is
+              written.
             </li>
             <li>
               Everyone sees Release {APP_RELEASE} and “{POWERED_BY}” as plain text in the
@@ -73,12 +70,8 @@ export function ReleaseNotesPage() {
               admins.
             </li>
             <li>
-              Existing documents must be re-trained. Embeddings from Gemini are not compatible
-              with {EMBED_MODEL_NAME}, even though both use 768 dimensions.
-            </li>
-            <li>
-              Topic extraction reads the start of long documents so the text fits the local
-              model’s context window.
+              Topic extraction still reads the start of long documents. If that step fails, the
+              document can still become ready and chat can still search its chunks.
             </li>
           </ul>
         </section>

@@ -29,12 +29,13 @@ export const config = {
   uploadDir: process.env.UPLOAD_DIR || path.resolve(process.cwd(), 'uploads'),
   uploadMaxBytes: Number(process.env.UPLOAD_MAX_BYTES || 25 * 1024 * 1024),
   // Keep in sync with src/release.ts when cutting a release.
-  appRelease: '1.1.14',
-  chatModelName: 'Gemma 3 1B',
+  appRelease: '1.1.15',
+  chatModelName: 'GPT-OSS 120B',
+  groqApiKey: process.env.GROQ_API_KEY || '',
+  groqChatModel:
+    process.env.GROQ_CHAT_MODEL || 'openai/gpt-oss-120b',
   ollamaBaseUrl: (process.env.OLLAMA_BASE_URL || 'http://127.0.0.1:11434').replace(/\/$/, ''),
-  ollamaChatModel: process.env.OLLAMA_CHAT_MODEL || 'gemma3:1b',
   ollamaEmbedModel: process.env.OLLAMA_EMBED_MODEL || 'nomic-embed-text',
-  ollamaNumCtx: Number(process.env.OLLAMA_NUM_CTX || 4096),
   sessionTtlDays: Number(process.env.SESSION_TTL_DAYS || 30),
   bcryptRounds: Number(process.env.BCRYPT_ROUNDS || 12),
   recoveryUsername: process.env.RECOVERY_USERNAME || 'recovery',
@@ -45,10 +46,13 @@ export const config = {
 
 export function assertRuntimeConfig(): void {
   console.log(
-    `LLM: Ollama ${config.chatModelName} (${config.ollamaChatModel}) via ${config.ollamaBaseUrl}; embeddings ${config.ollamaEmbedModel}`
+    `LLM: Groq ${config.chatModelName} (${config.groqChatModel}); embeddings Ollama ${config.ollamaEmbedModel} via ${config.ollamaBaseUrl}`
   );
+  if (!config.groqApiKey) {
+    console.warn('WARNING: GROQ_API_KEY is empty; chat and topic extraction will fail.');
+  }
   if (!config.ollamaBaseUrl) {
-    console.warn('WARNING: OLLAMA_BASE_URL is empty; chat and ingest will fail.');
+    console.warn('WARNING: OLLAMA_BASE_URL is empty; embeddings will fail.');
   }
   if (!config.recoveryPassword && config.nodeEnv !== 'test') {
     console.warn(

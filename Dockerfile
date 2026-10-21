@@ -10,10 +10,9 @@ COPY src ./src
 COPY public ./public
 
 ARG VITE_API_URL
-ARG VITE_MODE=production
 ENV VITE_API_URL=${VITE_API_URL}
 
-RUN if [ "${VITE_MODE}" = "staging" ]; then npm run build:staging; else npm run build; fi
+RUN npm run build
 
 FROM caddy:2-alpine AS runtime
 

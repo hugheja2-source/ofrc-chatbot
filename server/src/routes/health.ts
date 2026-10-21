@@ -11,7 +11,7 @@ healthRouter.get('/health', async (_req, res) => {
       ok: true,
       service: 'ofrc-chatbot-api',
       release: config.appRelease,
-      chatModel: config.ollamaChatModel,
+      chatModel: config.groqChatModel,
       chatModelName: config.chatModelName,
       embedModel: config.ollamaEmbedModel,
       time: new Date().toISOString(),
