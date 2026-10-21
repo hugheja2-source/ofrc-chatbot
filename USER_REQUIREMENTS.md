@@ -66,7 +66,9 @@ A greenfield web application that answers questions about OFRC using **only** cl
 
 The site header says **Ask OFRC**. The chat page does not repeat that title.
 
-Under the heading **How can we help?**:
+The chat column is headed **How can we help?**
+
+On the right, two boxes are stacked. The top box is **About this chatbot**. It holds:
 
 1. A short introduction, at most two sentences. The first sentence summarizes the topics currently in the library (category names, plus up to one short example from each of a few categories — not every topic) and always includes contact information and meeting dates. The second sentence says answers come only from club documents shared for this chat. The text is rebuilt from the topics list on each visit, so it changes when topics are added or removed. If there are no topics yet, it says to ask about the club, including contact information and meeting dates, then the same second sentence.
 2. Contact lines (each on its own line):
@@ -74,6 +76,8 @@ Under the heading **How can we help?**:
    - Direct questions or any requests for support to ofrcassistant@outlook.com.
    - For after-hours emergencies (non life-threatening), contact 707-909-0700.
    - In the event of a life-threatening emergency, call 911. (red, larger type)
+
+The box under that is **Recent questions**.
 
 ### 3.2 Chat behavior
 
@@ -85,7 +89,7 @@ Under the heading **How can we help?**:
 - Each assistant reply shows **First word** (time until the first token) and **Finished** (time until the reply is complete). Finished sits immediately left of Copy. These times are not copied with the answer.
 - **New chat** button: fixed size; not stretched by the instruction/contact column.
 
-### 3.3 Recent questions sidebar
+### 3.3 Recent questions
 
 - Shows up to the last **five** questions asked.
 - Clicking a question opens/restores that Q&A in the chat.
@@ -212,6 +216,8 @@ The Ollama container is shared (`ofrc-ollama` on `ofrc_ollama`, bound to `127.0.
 | 2026-10-19 | Imported OFRCNews pages keep each link name together with its web address. |
 | 2026-10-21 | Release 1.1.15: chat and topic extraction moved to Groq. Llama 4 Scout is shut down on the Developer plan, so chat uses GPT-OSS 120B (`openai/gpt-oss-120b`). Embeddings stay `nomic-embed-text` on the VPS. Existing documents do not need re-training. Each answer still uses at most 3 chunks. |
 | 2026-10-21 | Release 1.1.16: the chat page leads with “How can we help?” and does not repeat Ask OFRC. The ask-about line includes contact information and meeting dates. Ingest keeps contact lists and date schedules together, and search can match a named contact. Documents must be trained again. |
+| 2026-10-21 | A year that wraps onto the next line of the same table cell stays with that date. |
+| 2026-10-21 | The ask page right column has two stacked boxes: About this chatbot, then Recent questions. |
 | 2026-10-21 | The staging/production split is removed. The single live app is Ask OFRC at https://ask.ofrc-admin.com with the API at https://api-ask.ofrc-admin.com. The site header reads Ask OFRC. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*

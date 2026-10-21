@@ -33,6 +33,11 @@ export function assemblePageText(items: PdfTextItem[]): string {
     glyphs.push({ str, x, y, width, size });
   }
   if (!glyphs.length) return '';
+  attachWrappedYears(glyphs);
+  for (let i = glyphs.length - 1; i >= 0; i--) {
+    if (!glyphs[i].str.trim()) glyphs.splice(i, 1);
+  }
+  if (!glyphs.length) return '';
 
   glyphs.sort((a, b) => b.y - a.y || a.x - b.x);
 
@@ -71,6 +76,34 @@ export function assemblePageText(items: PdfTextItem[]): string {
     parts.push(line);
   }
   return parts.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+const MONTH =
+  '(?:January|February|March|April|May|June|July|August|September|October|November|December)';
+
+/**
+ * A table cell often wraps after the comma, so "June 30," is on one line and
+ * "2026" is on the next line of the same column. Keep that year with the date
+ * instead of leaving it for a later reader to guess.
+ */
+function attachWrappedYears(glyphs: Glyph[]): void {
+  for (const yearGlyph of glyphs) {
+    const match = yearGlyph.str.match(/^\s*(20\d\d)([.]?)\s*([\s\S]*)$/);
+    if (!match) continue;
+    const year = match[1];
+    const dot = match[2] || '';
+    const rest = match[3] || '';
+    const dateGlyph = glyphs
+      .filter((other) => other !== yearGlyph)
+      .filter((other) => Math.abs(other.x - yearGlyph.x) <= 12)
+      .filter((other) => other.y > yearGlyph.y && other.y - yearGlyph.y <= 22)
+      .filter((other) => new RegExp(`${MONTH}\\s+\\d{1,2},?\\s*$`).test(other.str.trim()))
+      .filter((other) => !/20\d\d/.test(other.str))
+      .sort((a, b) => a.y - b.y)[0];
+    if (!dateGlyph) continue;
+    dateGlyph.str = `${dateGlyph.str.trim()} ${year}${dot}`;
+    yearGlyph.str = rest.trim();
+  }
 }
 
 function isOrdinalLine(line: Line): boolean {

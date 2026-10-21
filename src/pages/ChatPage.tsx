@@ -75,7 +75,6 @@ export function ChatPage() {
   const [error, setError] = useState('');
   const [activeQuestionId, setActiveQuestionId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [recentOpen, setRecentOpen] = useState(false);
   const [recent, setRecent] = useState<RecentQuestion[]>(() => loadRecent());
   const [sessionId, setSessionId] = useState<string | null>(() => {
     localStorage.removeItem(SESSION_KEY); // legacy cross-tab session
@@ -128,7 +127,6 @@ export function ChatPage() {
     upsertRecent({ id: questionId, question: text, askedAt: Date.now() });
     setBusy(true);
     setReceiving(false);
-    setRecentOpen(false);
 
     const assistantId = `${questionId}-a`;
     const startedAt = performance.now();
@@ -203,13 +201,11 @@ export function ChatPage() {
     setMessages([]);
     setActiveQuestionId(null);
     setError('');
-    setRecentOpen(false);
   }
 
   function openRecent(item: RecentQuestion) {
     setActiveQuestionId(item.id);
     setError('');
-    setRecentOpen(false);
 
     const existing = messages.find((m) => m.id === item.id);
     if (existing) {
@@ -255,40 +251,8 @@ export function ChatPage() {
     <main className="page chat-layout">
       <section className="panel chat-main">
         <div className="chat-header">
-          <div className="chat-intro">
-            <h1 className="chat-title">How can we help?</h1>
-            <p className="chat-lede">{lede}</p>
-            <div className="chat-contact" aria-label="Documents, contact, and emergency information">
-              <p className="chat-contact-line">
-                See{' '}
-                <a href="https://ofrcnews.com" target="_blank" rel="noopener noreferrer">
-                  OFRCNews.com
-                </a>{' '}
-                for documents referenced here.
-              </p>
-              <p className="chat-contact-line">
-                Direct questions or any requests for support to{' '}
-                <a href="mailto:ofrcassistant@outlook.com">ofrcassistant@outlook.com</a>.
-              </p>
-              <p className="chat-contact-line">
-                For after-hours emergencies (non life-threatening), contact{' '}
-                <a href="tel:7079090700">707-909-0700</a>
-              </p>
-              <p className="chat-contact-line chat-contact-911">
-                In the event of a life-threatening emergency, call <a href="tel:911">911</a>.
-              </p>
-            </div>
-          </div>
+          <h1 className="chat-title">How can we help?</h1>
           <div className="chat-toolbar">
-            <button
-              type="button"
-              className="btn secondary chat-recent-toggle"
-              onClick={() => setRecentOpen((open) => !open)}
-              aria-expanded={recentOpen}
-              aria-controls="chat-recent-panel"
-            >
-              Recent{recent.length > 0 ? ` (${recent.length})` : ''}
-            </button>
             <button type="button" className="btn secondary" onClick={newChat}>
               New chat
             </button>
@@ -354,30 +318,39 @@ export function ChatPage() {
         </form>
       </section>
 
-      {recentOpen && (
-        <button
-          type="button"
-          className="chat-recent-backdrop"
-          aria-label="Close recent questions"
-          onClick={() => setRecentOpen(false)}
-        />
-      )}
+      <aside className="chat-side">
+        <section className="panel chat-about" aria-label="About this chatbot">
+          <h2 className="chat-sidebar-title">About this chatbot</h2>
+          <p className="chat-lede">{lede}</p>
+          <div className="chat-contact">
+            <p className="chat-contact-line">
+              See{' '}
+              <a href="https://ofrcnews.com" target="_blank" rel="noopener noreferrer">
+                OFRCNews.com
+              </a>{' '}
+              for documents referenced here.
+            </p>
+            <p className="chat-contact-line">
+              Direct questions or any requests for support to{' '}
+              <a href="mailto:ofrcassistant@outlook.com">ofrcassistant@outlook.com</a>.
+            </p>
+            <p className="chat-contact-line">
+              For after-hours emergencies (non life-threatening), contact{' '}
+              <a href="tel:7079090700">707-909-0700</a>
+            </p>
+            <p className="chat-contact-line chat-contact-911">
+              In the event of a life-threatening emergency, call <a href="tel:911">911</a>.
+            </p>
+          </div>
+        </section>
 
-      <aside
-        id="chat-recent-panel"
-        className={recentOpen ? 'panel chat-sidebar is-open' : 'panel chat-sidebar'}
-        aria-label="Recent questions"
-      >
+        <section
+          id="chat-recent-panel"
+          className="panel chat-recent"
+          aria-label="Recent questions"
+        >
         <div className="chat-sidebar-head">
           <h2 className="chat-sidebar-title">Recent questions</h2>
-          <button
-            type="button"
-            className="chat-sidebar-close"
-            onClick={() => setRecentOpen(false)}
-            aria-label="Close recent questions"
-          >
-            Close
-          </button>
         </div>
         {recent.length === 0 ? (
           <p className="muted chat-sidebar-empty">
@@ -403,6 +376,7 @@ export function ChatPage() {
             ))}
           </ul>
         )}
+        </section>
       </aside>
     </main>
   );
