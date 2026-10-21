@@ -68,7 +68,7 @@ The site header says **Ask OFRC**. The chat page does not repeat that title.
 
 The chat column is headed **How can we help?** Directly under that heading:
 
-1. Ask about camping and cabins, events, meetings, reservations, contact information and meeting or work weekend dates, in addition to other topics.
+1. Ask about camping, cabins, RV's, events, reservations, contact information and meeting or work weekend dates, in addition to other topics.
 2. All answers are generated from documents the club has shared with this chat.
 
 On the right, two boxes are stacked. The top box is **About this chatbot**. It holds the contact lines (each on its own line):
@@ -219,6 +219,7 @@ The Ollama container is shared (`ofrc-ollama` on `ofrc_ollama`, bound to `127.0.
 | 2026-10-21 | A year that wraps onto the next line of the same table cell stays with that date. |
 | 2026-10-21 | The ask page right column has two stacked boxes: About this chatbot, then Recent questions. |
 | 2026-10-21 | The lines under How can we help? name camping, cabins, events, meetings, reservations, contact information, and meeting or work weekend dates, and say answers come from documents the club shared with this chat. |
+| 2026-10-21 | The line under How can we help? now names camping, cabins, RV's, events, reservations, contact information, and meeting or work weekend dates. |
 | 2026-10-21 | The staging/production split is removed. The single live app is Ask OFRC at https://ask.ofrc-admin.com with the API at https://api-ask.ofrc-admin.com. The site header reads Ask OFRC. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*

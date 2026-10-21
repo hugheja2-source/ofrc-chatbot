@@ -237,8 +237,8 @@ export function ChatPage() {
           <div className="chat-intro">
             <h1 className="chat-title">How can we help?</h1>
             <p className="chat-lede">
-              Ask about camping and cabins, events, meetings, reservations, contact information and
-              meeting or work weekend dates, in addition to other topics.
+              Ask about camping, cabins, RV's, events, reservations, contact information and meeting
+              or work weekend dates, in addition to other topics.
             </p>
             <p className="chat-lede">
               All answers are generated from documents the club has shared with this chat.
