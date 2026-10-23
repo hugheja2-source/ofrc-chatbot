@@ -80,11 +80,14 @@ export function ChatPage() {
     localStorage.removeItem(SESSION_KEY); // legacy cross-tab session
     return tabStore?.getItem(SESSION_KEY) ?? null;
   });
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const threadRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length === 0) return;
+    const thread = threadRef.current;
+    if (!thread) return;
+    thread.scrollTop = thread.scrollHeight;
   }, [messages, busy]);
 
   function upsertRecent(entry: RecentQuestion) {
@@ -193,10 +196,13 @@ export function ChatPage() {
     const existing = messages.find((m) => m.id === item.id);
     if (existing) {
       requestAnimationFrame(() => {
-        messageRefs.current[item.id]?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center',
-        });
+        const el = messageRefs.current[item.id];
+        const thread = threadRef.current;
+        if (!el || !thread) return;
+        const elRect = el.getBoundingClientRect();
+        const threadRect = thread.getBoundingClientRect();
+        thread.scrollTop +=
+          elRect.top - threadRect.top - thread.clientHeight / 2 + el.clientHeight / 2;
       });
       return;
     }
@@ -237,8 +243,8 @@ export function ChatPage() {
           <div className="chat-intro">
             <h1 className="chat-title">How can we help?</h1>
             <p className="chat-lede">
-              Ask about camping, cabins, RV's, events, reservations, contact information and meeting
-              or work weekend dates, in addition to other topics.
+              Ask about camping, cabins, RV's, events, reservations, contact information and events,
+              meeting or work weekend dates, in addition to other topics.
             </p>
             <p className="chat-lede">
               All answers are generated from documents the club has shared with this chat.
@@ -251,7 +257,7 @@ export function ChatPage() {
           </div>
         </div>
 
-        <div className="chat-thread">
+        <div className="chat-thread" ref={threadRef}>
           {messages.map((m) => (
             <div
               key={m.id}
@@ -290,7 +296,6 @@ export function ChatPage() {
             </div>
           ))}
           {busy && !receiving && <p className="muted chat-thinking">Thinking…</p>}
-          <div ref={bottomRef} />
         </div>
 
         {error && <p className="error chat-error">{error}</p>}

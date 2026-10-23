@@ -283,6 +283,11 @@ a:hover {
   font-weight: 700;
 }
 
+.chat-contact a {
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
 .chat-contact-911 a {
   color: inherit;
 }
@@ -561,12 +566,41 @@ a:hover {
 }
 
 @media (min-width: 960px) {
+  .app-shell:has(.chat-layout) {
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .app-shell:has(.chat-layout) .app-main {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0.75rem 0 0.85rem;
+  }
+
   .chat-layout {
     grid-template-columns: minmax(0, 1fr) 340px;
     align-items: stretch;
+    flex: 1;
+    min-height: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  .chat-main,
+  .chat-side {
+    min-height: 0;
   }
 
   .chat-main {
-    min-height: calc(100dvh - 5.5rem);
+    overflow: hidden;
+  }
+
+  .chat-thread {
+    min-height: 0;
+  }
+
+  .chat-side {
+    overflow: auto;
   }
 }
