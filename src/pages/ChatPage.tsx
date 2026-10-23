@@ -24,6 +24,17 @@ const SESSION_KEY = 'ofrc_chat_session';
 const RECENT_KEY = 'ofrc_chat_recent_questions';
 const RECENT_LIMIT = 10;
 
+const SUGGESTED_QUESTIONS = [
+  "What's happening at OFRC this weekend?",
+  'How do I reserve a cabin?',
+  'What are the campground rules?',
+  'How do I book an RV site?',
+  'When is the next work weekend?',
+  'Who do I contact about a reservation?',
+  'What event sites are available?',
+  'When is the next club meeting?',
+];
+
 /** Per-tab only — not shared across browsers, profiles, or other tabs. */
 const tabStore = typeof sessionStorage !== 'undefined' ? sessionStorage : null;
 
@@ -82,6 +93,7 @@ export function ChatPage() {
   });
   const threadRef = useRef<HTMLDivElement>(null);
   const messageRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const sendingRef = useRef(false);
 
   useEffect(() => {
     if (messages.length === 0) return;
@@ -99,10 +111,10 @@ export function ChatPage() {
     });
   }
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
-    if (!text || busy) return;
+  async function ask(raw: string) {
+    const text = raw.trim();
+    if (!text || sendingRef.current) return;
+    sendingRef.current = true;
 
     const questionId = newId();
     const userMsg: Msg = { id: questionId, role: 'user', content: text };
@@ -176,9 +188,15 @@ export function ChatPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Chat failed');
     } finally {
+      sendingRef.current = false;
       setBusy(false);
       setReceiving(false);
     }
+  }
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault();
+    void ask(input);
   }
 
   function newChat() {
@@ -249,6 +267,22 @@ export function ChatPage() {
             <p className="chat-lede">
               All answers are generated from documents the club has shared with this chat.
             </p>
+            {messages.length === 0 && (
+              <ul className="chat-prompts" aria-label="Suggested questions">
+                {SUGGESTED_QUESTIONS.map((question) => (
+                  <li key={question}>
+                    <button
+                      type="button"
+                      className="chat-prompt"
+                      disabled={busy}
+                      onClick={() => void ask(question)}
+                    >
+                      {question}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
           <div className="chat-toolbar">
             <button type="button" className="btn secondary" onClick={newChat}>

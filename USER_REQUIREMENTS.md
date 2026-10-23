@@ -71,6 +71,17 @@ The chat column is headed **How can we help?** Directly under that heading:
 1. Ask about camping, cabins, RV's, events, reservations, contact information and meeting or work weekend dates, in addition to other topics.
 2. All answers are generated from documents the club has shared with this chat.
 
+Under that second line, while the chat is empty, eight suggested questions appear as tiles. Clicking a tile sends that question and starts a chat. **New chat** brings the tiles back. The questions are:
+
+1. What's happening at OFRC this weekend?
+2. How do I reserve a cabin?
+3. What are the campground rules?
+4. How do I book an RV site?
+5. When is the next work weekend?
+6. Who do I contact about a reservation?
+7. What event sites are available?
+8. When is the next club meeting?
+
 On the right, two boxes are stacked. The top box is **About this chatbot**. It holds the contact lines (each on its own line):
    - See OFRCNews.com for documents referenced here. (OFRCNews.com links to https://ofrcnews.com)
    - Direct questions or any requests for support to ofrcassistant@outlook.com.
@@ -221,5 +232,6 @@ The Ollama container is shared (`ofrc-ollama` on `ofrc_ollama`, bound to `127.0.
 | 2026-10-21 | The lines under How can we help? name camping, cabins, events, meetings, reservations, contact information, and meeting or work weekend dates, and say answers come from documents the club shared with this chat. |
 | 2026-10-21 | The line under How can we help? now names camping, cabins, RV's, events, reservations, contact information, and meeting or work weekend dates. |
 | 2026-10-21 | The staging/production split is removed. The single live app is Ask OFRC at https://ask.ofrc-admin.com with the API at https://api-ask.ofrc-admin.com. The site header reads Ask OFRC. |
+| 2026-10-23 | Empty chat shows eight suggested-question tiles under the documents line. Clicking a tile sends that question. |
 
 *When changing product behavior, add a row here and update the relevant sections above.*
